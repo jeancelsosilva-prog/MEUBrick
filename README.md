@@ -68,7 +68,7 @@ sem ajuste.
 ## 3. Atualizar depois
 
 Substitua os arquivos no repositório **e suba o número do cache**: no `sw.js`,
-troque `const CACHE = 'meubrick-v4';` para `'meubrick-v5'`, e assim por diante.
+troque `const CACHE = 'meubrick-v5';` para `'meubrick-v6'`, e assim por diante.
 
 Isso não é opcional. O service worker guarda tudo localmente e serve do cache
 antes de perguntar ao servidor — é o que faz o app abrir offline. Enquanto o nome

@@ -607,7 +607,20 @@ figcaption{font-size:12.5px;color:var(--muted);margin-top:8px;line-height:1.45}
 .bdg .hex svg.gl{position:relative;width:19px;height:19px;stroke:var(--muted);fill:none;
   stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 .bdg.on .hex svg.gl{stroke:#fff}
+.bdg-h{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
 .bdg b{font-size:13.5px;font-weight:650;letter-spacing:-.01em;line-height:1.25;display:block}
+.bdg-xp{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.02em;
+  color:var(--muted);background:var(--card-2);border-radius:6px;padding:2px 6px;
+  white-space:nowrap;flex:0 0 auto;line-height:1.5}
+.bdg-xp.on{color:var(--go);background:var(--go-bg)}
+.xp-fonte{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  padding:15px 16px;margin:14px 0 4px;box-shadow:var(--sh)}
+.xp-fonte h4{font-size:14.5px;font-weight:650;margin-bottom:9px;letter-spacing:-.01em}
+.xp-fonte ul{list-style:none;margin:0;padding:0;display:grid;gap:7px}
+.xp-fonte li{display:flex;justify-content:space-between;gap:14px;font-size:13.5px;
+  color:var(--ink-2);line-height:1.4}
+.xp-fonte li b{font-family:var(--mono);font-size:13px;color:var(--go);white-space:nowrap}
+.xp-fonte p{margin:10px 0 0;font-size:12.5px;color:var(--muted);line-height:1.45}
 .bdg p{margin:0;font-size:11.5px;color:var(--muted);line-height:1.38}
 .bdg.on b{color:var(--go)}
 .bdg .pr{height:4px;background:var(--line);border-radius:99px;overflow:hidden;margin-top:auto}
@@ -711,8 +724,18 @@ figcaption{font-size:12.5px;color:var(--muted);margin-top:8px;line-height:1.45}
   <section class="view" id="v-conquistas" hidden>
     <div class="conq-hero">
       <div class="conq-n mono" id="cq-count">0 / 0</div>
-      <div class="conq-l">insígnias conquistadas</div>
+      <div class="conq-l" id="cq-sub">insígnias conquistadas</div>
       <div class="lvl-bar" style="margin-top:12px"><i id="cq-fill" style="width:0%"></i></div>
+    </div>
+    <div class="xp-fonte">
+      <h4>De onde vem o XP</h4>
+      <ul>
+        <li><span>Cada negócio vendido</span><b>+10 XP</b></li>
+        <li><span>Cada R$ 100 de lucro acumulado</span><b>+1 XP</b></li>
+        <li><span>Insígnias, conforme a dificuldade</span><b>+15 a +130 XP</b></li>
+      </ul>
+      <p>As 18 insígnias somam 920 XP. Níveis: Aprendiz 0 · Garimpeiro 100 ·
+         Negociante 300 · Flipper 700 · Mestre da Bancada 1200.</p>
     </div>
     <div id="bdg-grupos"></div>
     <p style="font-size:12.5px;color:var(--muted);line-height:1.5;margin:18px 2px 0">
@@ -1212,13 +1235,14 @@ function save(){
 function calc(d){
   var c = canal(d.canal||'pix');
   var venda = +d.venda||0, compra = +d.compra||0, ins = +d.insumos||0, hrs = +d.horas||0;
-  var vendido = !!(d.vendaData && venda>0);
+  var devolvido = d.status === 'devolvido';
+  var vendido = !!(d.vendaData && venda>0) && !devolvido;
   var taxa = vendido ? venda*c.p + (venda>0?c.f:0) : 0;
   var liq  = venda - taxa;
   var custo= compra + ins;
   var lucro= vendido ? liq - custo : 0;
   return {
-    vendido:vendido, taxa:taxa, liquido:liq, custo:custo, lucro:lucro,
+    vendido:vendido, devolvido:devolvido, taxa:taxa, liquido:liq, custo:custo, lucro:lucro,
     markup: custo>0 && vendido ? lucro/custo : 0,
     margem: venda>0 && vendido ? lucro/venda : 0,
     dias: days(d.compraData, d.vendaData||null),
@@ -1406,6 +1430,7 @@ function renderDeals(){
       if(k.taxa>0) tags += '<span class="tag">taxa '+BRL2.format(k.taxa)+'</span>';
     } else {
       var dd=days(d.compraData,null);
+      if(k.devolvido) tags += '<span class="tag stop">devolvido</span>';
       tags += '<span class="tag'+(dd>30?' stop':(dd>14?' warn':''))+'">'+dd+' dias em estoque</span>';
       tags += '<span class="tag">custo '+money(k.custo)+'</span>';
     }
@@ -1445,7 +1470,7 @@ function openDeal(id, vender, prefill){
   d = d || Object.assign({
     id:'d'+Date.now()+Math.random().toString(36).slice(2,6),
     item:'', cat:'Console', cidade:'', compraData:today(), compra:0,
-    insumos:0, horas:0, canal:'pix', vendaData:'', venda:0, obs:''
+    insumos:0, horas:0, canal:'pix', status:'', vendaData:'', venda:0, obs:''
   }, prefill||{});
 
   var host=$('sheet-host');
@@ -1489,7 +1514,13 @@ function openDeal(id, vender, prefill){
       '<div class="fld"><label for="f-venda">Quanto vendi</label>'+
         '<input id="f-venda" type="number" inputmode="decimal" step="10" value="'+(+d.venda||'')+'" placeholder="0"></div>'+
     '</div>'+
-    '<div class="fld"><label for="f-canal">Como recebi</label><select id="f-canal">'+canaisOpt+'</select></div>'+
+    '<div class="two">'+
+      '<div class="fld"><label for="f-canal">Como recebi</label><select id="f-canal">'+canaisOpt+'</select></div>'+
+      '<div class="fld"><label for="f-status">Situação</label><select id="f-status">'+
+        '<option value=""'+(!d.status?' selected':'')+'>Normal</option>'+
+        '<option value="devolvido"'+(d.status==='devolvido'?' selected':'')+'>Devolvido pelo comprador</option>'+
+      '</select></div>'+
+    '</div>'+
     '<div class="fld"><label for="f-obs">Observações</label>'+
       '<textarea id="f-obs" placeholder="Anúncio parado 3 semanas. Trocou pasta térmica.">'+esc(d.obs)+'</textarea></div>'+
 
@@ -1506,13 +1537,17 @@ function openDeal(id, vender, prefill){
       item:$('f-item').value.trim(), cat:$('f-cat').value, cidade:$('f-cidade').value.trim(),
       compraData:$('f-cdata').value, compra:+$('f-compra').value||0,
       insumos:+$('f-insumos').value||0, horas:+$('f-horas').value||0,
-      canal:$('f-canal').value, vendaData:$('f-vdata').value, venda:+$('f-venda').value||0,
+      canal:$('f-canal').value, status:$('f-status').value,
+      vendaData:$('f-vdata').value, venda:+$('f-venda').value||0,
       obs:$('f-obs').value.trim()
     };
   }
   function preview(){
     var k=calc(read()), p=$('f-preview');
-    if(!k.vendido){
+    if(k.devolvido){
+      p.innerHTML='<div style="font-size:13.5px;color:var(--stop)">Devolvido — o item volta para o estoque '+
+        'e a sequência da insígnia Ficha Limpa zera. Capital travado de novo: <strong class="mono">'+money(k.custo)+'</strong></div>';
+    } else if(!k.vendido){
       p.innerHTML='<div style="font-size:13.5px;color:var(--muted)">Em estoque · capital travado <strong style="color:var(--ink)" class="mono">'+money(k.custo)+'</strong>'+
         (read().compraData? ' · '+days(read().compraData,null)+' dias':'')+'</div>';
     } else {
@@ -1532,11 +1567,15 @@ function openDeal(id, vender, prefill){
     var o=read();
     if(!o.item){ toast('Dê um nome ao item'); $('f-item').focus(); return; }
     if(!o.compraData){ toast('Falta a data da compra'); return; }
+    var antesIns = (S.insignias||[]).slice();
     Object.assign(d, o);
     if(novo) S.deals.push(d);
     save(); host.innerHTML='';
     toast(novo?'Negócio registrado':'Atualizado');
-    setTimeout(function(){ renderAll(true); }, 900);
+    renderAll(false);
+    setTimeout(function(){
+      anunciar((S.insignias||[]).filter(function(id){ return antesIns.indexOf(id)<0; }));
+    }, 1200);
   });
   preview();
   if(vender) setTimeout(function(){ $('f-venda').focus(); }, 260);
@@ -1809,63 +1848,63 @@ var GL = {
 };
 
 var BADGES = [
- {g:'Largada', id:'primeiro', n:'Primeiro Brick', gl:'bolt',
+ {g:'Largada', id:'primeiro', xp:20, n:'Primeiro Brick', gl:'bolt',
   d:'Fechar o primeiro ciclo completo: comprar, recondicionar e vender.',
   m:function(t){ return {a:t.vendidos, alvo:1}; }},
- {g:'Largada', id:'bancada', n:'Bancada Montada', gl:'layers',
+ {g:'Largada', id:'bancada', xp:15, n:'Bancada Montada', gl:'layers',
   d:'Três negócios registrados. A partir daqui os números começam a significar algo.',
   m:function(t){ return {a:t.total, alvo:3}; }},
- {g:'Largada', id:'ciclo', n:'Ciclo Fechado', gl:'check',
+ {g:'Largada', id:'ciclo', xp:25, n:'Ciclo Fechado', gl:'check',
   d:'Uma venda em 15 dias ou menos, da compra ao PIX do comprador.',
   m:function(t){ return {a:t.diasMin!=null&&t.diasMin<=15?1:0, alvo:1}; }},
 
- {g:'Velocidade', id:'rapido', n:'Giro Rápido', gl:'clock',
+ {g:'Velocidade', id:'rapido', xp:35, n:'Giro Rápido', gl:'clock',
   d:'Vender em até 7 dias. Capital de volta antes da semana virar.',
   m:function(t){ return {a:t.diasMin!=null&&t.diasMin<=7?1:0, alvo:1}; }},
- {g:'Velocidade', id:'relampago', n:'Relâmpago', gl:'bolt',
+ {g:'Velocidade', id:'relampago', xp:60, n:'Relâmpago', gl:'bolt',
   d:'Vender em 48 horas. Anúncio bom encontrando comprador certo.',
   m:function(t){ return {a:t.diasMin!=null&&t.diasMin<=2?1:0, alvo:1}; }},
- {g:'Velocidade', id:'semencalhe', n:'Sem Encalhe', gl:'shield',
+ {g:'Velocidade', id:'semencalhe', xp:70, n:'Sem Encalhe', gl:'shield',
   d:'Cinco vendas seguidas sem nenhuma passar de 30 dias em estoque.',
   m:function(t){ return {a:t.seqRapida, alvo:5}; }},
 
- {g:'Margem', id:'ferro', n:'Margem de Ferro', gl:'target',
+ {g:'Margem', id:'ferro', xp:30, n:'Margem de Ferro', gl:'target',
   d:'Um negócio com markup de 60% ou mais sobre o custo.',
   m:function(t){ return {a:Math.round(t.markupMax*100), alvo:60, pct:true}; }},
- {g:'Margem', id:'dobrou', n:'Dobrou', gl:'coin',
+ {g:'Margem', id:'dobrou', xp:60, n:'Dobrou', gl:'coin',
   d:'Markup de 100%: vender por duas vezes o que você colocou no item.',
   m:function(t){ return {a:Math.round(t.markupMax*100), alvo:100, pct:true}; }},
- {g:'Margem', id:'firme', n:'Mão Firme', gl:'shield',
+ {g:'Margem', id:'firme', xp:70, n:'Mão Firme', gl:'shield',
   d:'Cinco vendas seguidas com markup acima de 50%. Teto respeitado.',
   m:function(t){ return {a:t.seqMargem, alvo:5}; }},
 
- {g:'Lucro', id:'mil', n:'Primeiro Mil', gl:'coin',
+ {g:'Lucro', id:'mil', xp:30, n:'Primeiro Mil', gl:'coin',
   d:'R$ 1.000 de lucro acumulado — já descontado taxa e peça.',
   m:function(t){ return {a:Math.round(t.lucro), alvo:1000, brl:true}; }},
- {g:'Lucro', id:'cinco', n:'Cinco Mil', gl:'coin',
+ {g:'Lucro', id:'cinco', xp:70, n:'Cinco Mil', gl:'coin',
   d:'R$ 5.000 de lucro acumulado.',
   m:function(t){ return {a:Math.round(t.lucro), alvo:5000, brl:true}; }},
- {g:'Lucro', id:'dez', n:'Dez Mil', gl:'trophy',
+ {g:'Lucro', id:'dez', xp:130, n:'Dez Mil', gl:'trophy',
   d:'R$ 10.000 de lucro acumulado. Isso é um negócio, não mais um teste.',
   m:function(t){ return {a:Math.round(t.lucro), alvo:10000, brl:true}; }},
 
- {g:'Ofício', id:'tecnico', n:'Técnico', gl:'wrench',
+ {g:'Ofício', id:'tecnico', xp:40, n:'Técnico', gl:'wrench',
   d:'Três negócios em que você colocou peça ou insumo — consertou, não só limpou.',
   m:function(t){ return {a:t.comInsumo, alvo:3}; }},
- {g:'Ofício', id:'hora', n:'Hora Valorizada', gl:'clock',
+ {g:'Ofício', id:'hora', xp:35, n:'Hora Valorizada', gl:'clock',
   d:'Um negócio pagando R$ 100 por hora ou mais de trabalho real.',
   m:function(t){ return {a:Math.round(t.rphMax), alvo:100, brl:true}; }},
- {g:'Ofício', id:'limpo', n:'Ficha Limpa', gl:'check',
+ {g:'Ofício', id:'limpo', xp:80, n:'Ficha Limpa', gl:'check',
   d:'Dez vendas sem uma única devolução. Defeito declarado no anúncio.',
-  m:function(t){ return {a:t.devolvidos>0?0:t.vendidos, alvo:10}; }},
+  m:function(t){ return {a:t.seqLimpa, alvo:10}; }},
 
- {g:'Alcance', id:'cacador', n:'Caçador', gl:'pin',
+ {g:'Alcance', id:'cacador', xp:35, n:'Caçador', gl:'pin',
   d:'Negócios em três cidades diferentes. A malha do interior funcionando.',
   m:function(t){ return {a:t.cidades, alvo:3}; }},
- {g:'Alcance', id:'catalogo', n:'Catálogo', gl:'grid',
+ {g:'Alcance', id:'catalogo', xp:40, n:'Catálogo', gl:'grid',
   d:'Vendas em quatro categorias: console, controle, jogo, acessório ou lote.',
   m:function(t){ return {a:t.cats, alvo:4}; }},
- {g:'Alcance', id:'constante', n:'Constante', gl:'flame',
+ {g:'Alcance', id:'constante', xp:75, n:'Constante', gl:'flame',
   d:'Vendas em três meses seguidos. Consistência vale mais que um mês bom.',
   m:function(t){ return {a:t.mesesSeq, alvo:3}; }}
 ];
@@ -1875,11 +1914,20 @@ function stats(){
   S.deals.forEach(function(d){ (calc(d).vendido?vend:est).push(d); });
   var t = { total:S.deals.length, vendidos:vend.length, lucro:0, custoV:0,
             diasMin:null, markupMax:0, rphMax:0, comInsumo:0, devolvidos:0,
-            cidades:0, cats:0, mesesSeq:0, seqRapida:0, seqMargem:0,
-            emEstoque:est.length, parado:0, encalhados:0, quaseLa:0, ultimaVenda:null };
+            cidades:0, cats:0, mesesSeq:0, seqRapida:0, seqMargem:0, seqLimpa:0,
+            emEstoque:est.length, parado:0, encalhados:0, quaseLa:0, ultimaVenda:null,
+            xpInsignias:0, xpTotal:0 };
   var cid={}, cat={};
   vend.sort(function(a,b){ return (a.vendaData||'').localeCompare(b.vendaData||''); });
   var r1=0, r2=0;
+  /* sequência limpa: caminha na linha do tempo e zera a cada devolução */
+  var linha = S.deals.filter(function(d){ return d.vendaData; })
+    .sort(function(a,b){ return a.vendaData.localeCompare(b.vendaData); });
+  var lim=0;
+  linha.forEach(function(d){
+    if(d.status==='devolvido'){ t.devolvidos++; lim=0; }
+    else if(calc(d).vendido){ lim++; if(lim>t.seqLimpa) t.seqLimpa=lim; }
+  });
   vend.forEach(function(d){
     var k=calc(d);
     t.lucro+=k.lucro; t.custoV+=k.custo;
@@ -1887,7 +1935,6 @@ function stats(){
     if(k.markup>t.markupMax) t.markupMax=k.markup;
     if(k.rph>t.rphMax) t.rphMax=k.rph;
     if((+d.insumos||0)>0) t.comInsumo++;
-    if(d.status==='devolvido') t.devolvidos++;
     if(d.cidade) cid[d.cidade.trim().toLowerCase()]=1;
     if(d.cat) cat[d.cat]=1;
     r1 = k.dias<=30 ? r1+1 : 0; if(r1>t.seqRapida) t.seqRapida=r1;
@@ -1925,9 +1972,10 @@ function fmtProg(pr){
   return pr.a + ' / ' + pr.alvo;
 }
 
-var NIVEIS=[[0,'Aprendiz'],[100,'Garimpeiro'],[300,'Negociante'],[700,'Flipper'],[1400,'Mestre da Bancada']];
-function nivel(t, nIns){
-  var xp = t.vendidos*10 + nIns*25 + Math.floor(Math.max(0,t.lucro)/100);
+var NIVEIS=[[0,'Aprendiz'],[100,'Garimpeiro'],[300,'Negociante'],[700,'Flipper'],[1200,'Mestre da Bancada']];
+var XP_VENDA=10, XP_POR_REAL=100;
+function nivel(t, xpIns){
+  var xp = t.vendidos*XP_VENDA + xpIns + Math.floor(Math.max(0,t.lucro)/XP_POR_REAL);
   var i=0; for(var k=0;k<NIVEIS.length;k++) if(xp>=NIVEIS[k][0]) i=k;
   var at=NIVEIS[i], px=NIVEIS[i+1]||null;
   return { xp:xp, nome:at[1], prox:px?px[1]:null, faltam:px?px[0]-xp:0,
@@ -1941,24 +1989,39 @@ function bdgHTML(b, pr){
     '<div class="hex"><svg class="bg" viewBox="0 0 40 40" aria-hidden="true">'+
       '<path d="M20 2.2 34.5 10.6v16.8L20 35.8 5.5 27.4V10.6z" fill="'+fill+'" stroke="'+stroke+'" stroke-width="1.4"/></svg>'+
       '<svg class="gl" viewBox="0 0 24 24" aria-hidden="true"><path d="'+GL[b.gl]+'"/></svg></div>'+
-    '<b>'+esc(b.n)+'</b><p>'+esc(b.d)+'</p>'+
+    '<div class="bdg-h"><b>'+esc(b.n)+'</b><span class="bdg-xp'+(pr.feito?' on':'')+'">+'+b.xp+'</span></div>'+
+    '<p>'+esc(b.d)+'</p>'+
     (pr.feito ? '<div class="pv" style="color:var(--go)">conquistada</div>'
               : '<div class="pr"><i style="width:'+(pr.pct*100).toFixed(0)+'%"></i></div>'+
                 '<div class="pv">'+fmtProg(pr)+'</div>')+
   '</div>';
 }
 
+function anunciar(ids){
+  if(!ids || !ids.length) return;
+  var bn = BADGES.filter(function(b){ return b.id===ids[0]; })[0] || {};
+  var soma = 0; ids.forEach(function(id){
+    var x=BADGES.filter(function(b){ return b.id===id; })[0]; if(x) soma+=x.xp; });
+  toast(ids.length===1 ? 'Insígnia: ' + (bn.n||'') + '  +' + (bn.xp||0) + ' XP'
+                       : ids.length + ' insígnias novas  +' + soma + ' XP');
+}
+
 function checkBadges(t, avisar){
   var ganhas = [];
-  BADGES.forEach(function(b){ if(prog(b,t).feito) ganhas.push(b.id); });
+  t.xpInsignias = 0; t.xpTotal = 0;
+  BADGES.forEach(function(b){
+    t.xpTotal += b.xp;
+    if(prog(b,t).feito){ ganhas.push(b.id); t.xpInsignias += b.xp; }
+  });
   var antes = S.insignias || [];
   var novas = ganhas.filter(function(id){ return antes.indexOf(id)<0; });
   if(novas.length && avisar && antes.length + novas.length === ganhas.length){
-    var nome = (BADGES.filter(function(b){ return b.id===novas[0]; })[0]||{}).n || '';
-    toast(novas.length===1 ? 'Insígnia: ' + nome
-                           : novas.length + ' insígnias novas — veja em Insígnias');
+    anunciar(novas);
   }
+  var mudou = ganhas.length !== antes.length ||
+              ganhas.some(function(id,i){ return antes[i] !== id; });
   S.insignias = ganhas;
+  if(mudou) save();          /* persiste o conjunto recalculado */
   return ganhas;
 }
 
@@ -1971,12 +2034,12 @@ function saudacao(){
   return ['Boa noite',              'Hora de limpar, fotografar e deixar o anúncio pronto para amanhecer no ar.'];
 }
 
-function renderInicio(t, nIns){
+function renderInicio(t, xpIns){
   var sa = saudacao();
   $('gr-ola').textContent = sa[0] + ', Jean';
   $('gr-sub').textContent = sa[1];
 
-  var nv = nivel(t, nIns);
+  var nv = nivel(t, xpIns);
   $('lvl-nome').textContent = nv.nome;
   $('lvl-xp').textContent = nv.xp + ' XP';
   $('lvl-next').innerHTML = nv.prox
@@ -2041,7 +2104,10 @@ function renderConquistas(t){
     (grupos[b.g] = grupos[b.g] || []).push(bdgHTML(b, pr));
   });
   $('cq-count').textContent = feitas + ' / ' + BADGES.length;
-  $('cq-fill').style.width = (feitas/BADGES.length*100).toFixed(1) + '%';
+  $('cq-fill').style.width = (t.xpTotal ? t.xpInsignias/t.xpTotal*100 : 0).toFixed(1) + '%';
+  var sub = $('cq-sub');
+  if(sub) sub.innerHTML = 'insígnias conquistadas &nbsp;·&nbsp; <b class="mono" style="color:var(--go)">' +
+    t.xpInsignias + ' de ' + t.xpTotal + ' XP</b>';
   $('bdg-grupos').innerHTML = Object.keys(grupos).map(function(g){
     return '<div class="bdg-group"><div class="sec">'+esc(g)+'</div>'+
            '<div class="bdg-grid">'+grupos[g].join('')+'</div></div>';
@@ -2088,8 +2154,8 @@ function hydrate(){
 }
 function renderAll(avisar){
   var t = stats();
-  var ganhas = checkBadges(t, avisar);
-  renderInicio(t, ganhas.length);
+  checkBadges(t, avisar);
+  renderInicio(t, t.xpInsignias);
   renderConquistas(t);
   renderPainel();
   renderDeals();
