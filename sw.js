@@ -1,18 +1,23 @@
 /* MEUBrick — service worker
-   Cache-first para o app, network-first nada: o app é 100% offline. */
-const CACHE = 'meubrick-v1';
+   Cache-first: o app é 100% offline.
+
+   AO TROCAR QUALQUER ARQUIVO (ícone, HTML, o que for), suba o número da
+   constante CACHE abaixo. Sem isso o navegador continua servindo a versão
+   antiga para sempre, mesmo com o arquivo novo no servidor. */
+const CACHE = 'meubrick-v4';
 const ASSETS = [
   './',
   './index.html',
-  './manifest.webmanifest',
-  './icon-32.png',
-  './icon-120.png',
-  './icon-152.png',
-  './icon-167.png',
-  './icon-180.png',
-  './icon-192.png',
-  './icon-512.png',
-  './icon-maskable-512.png'
+  './manifest.webmanifest?v=2',
+  './icon-16.png?v=2',
+  './icon-32.png?v=2',
+  './icon-48.png?v=2',
+  './icon-152.png?v=2',
+  './icon-167.png?v=2',
+  './icon-180.png?v=2',
+  './icon-192.png?v=2',
+  './icon-512.png?v=2',
+  './icon-maskable-512.png?v=2'
 ];
 
 self.addEventListener('install', (e) => {
