@@ -1,0 +1,1703 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>MEUBrick</title>
+<meta name="description" content="Manual e calculadora de flip de console: teto de compra, giro de capital e registro de negócios.">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MEUBrick">
+<meta name="application-name" content="MEUBrick">
+<meta name="theme-color" content="#10201C">
+<meta name="color-scheme" content="light dark">
+<meta name="format-detection" content="telephone=no">
+
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icon-180.png">
+<link rel="apple-touch-icon" sizes="152x152" href="./icon-152.png">
+<link rel="apple-touch-icon" sizes="167x167" href="./icon-167.png">
+<link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png">
+<link rel="icon" type="image/png" sizes="32x32" href="./icon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+
+<style>
+/* ============ tokens ============ */
+:root{
+  --chrome:#10201C;
+  --chrome-2:#18302A;
+  --chrome-ink:#EAF4F1;
+  --chrome-muted:#7FA298;
+
+  --bg:#EFF2F1;
+  --card:#FFFFFF;
+  --card-2:#F5F8F7;
+  --ink:#15191B;
+  --ink-2:#3B4644;
+  --muted:#6B7977;
+  --line:#DCE3E1;
+  --line-2:#EAEFEE;
+
+  --go:#0C7A68;
+  --go-bg:#DDEFEA;
+  --warn:#A8710C;
+  --warn-bg:#F7EBD6;
+  --stop:#A63A2D;
+  --stop-bg:#F8E3DF;
+
+  --r:14px;
+  --r-sm:10px;
+  --tap:46px;
+  --sh:0 1px 2px rgba(16,32,28,.05), 0 10px 26px -18px rgba(16,32,28,.35);
+
+  --sat:env(safe-area-inset-top, 0px);
+  --sab:env(safe-area-inset-bottom, 0px);
+  --bar-h:58px;
+  --tabs-h:56px;
+
+  --ui:-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Roboto, "Helvetica Neue", Arial, sans-serif;
+  --serif:ui-serif, "New York", Georgia, "Times New Roman", serif;
+  --mono:ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#101514;
+    --card:#181E1D;
+    --card-2:#1F2726;
+    --ink:#E8EEEC;
+    --ink-2:#BAC6C3;
+    --muted:#87948F;
+    --line:#2A3432;
+    --line-2:#222B2A;
+    --go:#3EB49B;
+    --go-bg:#11302B;
+    --warn:#D6A040;
+    --warn-bg:#33270F;
+    --stop:#DE7765;
+    --stop-bg:#371C17;
+    --sh:0 1px 2px rgba(0,0,0,.45), 0 10px 26px -18px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#101514; --card:#181E1D; --card-2:#1F2726;
+  --ink:#E8EEEC; --ink-2:#BAC6C3; --muted:#87948F;
+  --line:#2A3432; --line-2:#222B2A;
+  --go:#3EB49B; --go-bg:#11302B; --warn:#D6A040; --warn-bg:#33270F;
+  --stop:#DE7765; --stop-bg:#371C17;
+  --sh:0 1px 2px rgba(0,0,0,.45), 0 10px 26px -18px rgba(0,0,0,.8);
+}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+html{background:var(--chrome)}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:var(--ui); font-size:16px; line-height:1.5;
+  -webkit-font-smoothing:antialiased; overscroll-behavior-y:none;
+  padding-top:calc(var(--sat) + var(--bar-h));
+  padding-bottom:calc(var(--sab) + var(--tabs-h));
+  min-height:100vh;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+h1,h2,h3,h4{margin:0;letter-spacing:-.02em;line-height:1.2}
+p{margin:0 0 .85em}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--go);outline-offset:2px;border-radius:6px}
+
+/* ============ chrome ============ */
+.appbar{
+  position:fixed;top:0;left:0;right:0;z-index:50;
+  background:var(--chrome); color:var(--chrome-ink);
+  padding:0 16px; padding-top:var(--sat);
+  height:calc(var(--sat) + var(--bar-h));
+  display:flex;align-items:center;gap:12px;
+  border-bottom:1px solid rgba(255,255,255,.07);
+}
+.appbar .mark{width:29px;height:29px;flex:0 0 auto}
+.appbar .ttl{font-size:16.5px;font-weight:650;letter-spacing:-.02em}
+.appbar .sub{font-family:var(--mono);font-size:10px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--chrome-muted);margin-top:1px}
+.appbar .spacer{flex:1}
+.iconbtn{
+  width:38px;height:38px;border-radius:10px;display:grid;place-items:center;
+  color:var(--chrome-muted);
+}
+.iconbtn:active{background:rgba(255,255,255,.08)}
+.iconbtn svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.8;
+  stroke-linecap:round;stroke-linejoin:round}
+
+.tabs{
+  position:fixed;left:0;right:0;bottom:0;z-index:50;
+  background:var(--chrome); border-top:1px solid rgba(255,255,255,.07);
+  padding-bottom:var(--sab);
+  display:grid;grid-template-columns:repeat(5,1fr);
+}
+.tabs button{
+  height:var(--tabs-h);display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:3px;color:var(--chrome-muted);
+  font-size:10px;letter-spacing:.02em;font-weight:500;
+}
+.tabs button svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.7;
+  stroke-linecap:round;stroke-linejoin:round}
+.tabs button[aria-selected="true"]{color:#48D3B4}
+.tabs button:active{opacity:.6}
+
+/* ============ layout ============ */
+main{padding:14px 16px 26px;max-width:720px;margin-inline:auto}
+.view{animation:in .18s ease both}
+@keyframes in{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.view{animation:none}*{transition:none!important}}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  box-shadow:var(--sh);padding:16px;margin-bottom:14px}
+.card.flat{box-shadow:none}
+.sec{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--muted);margin:22px 0 10px;padding-inline:2px}
+.sec:first-child{margin-top:4px}
+
+/* ============ hero result ============ */
+.hero{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  box-shadow:var(--sh);padding:18px;margin-bottom:14px;text-align:center;
+}
+.hero .cap{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--muted)}
+.hero .big{font-family:var(--mono);font-size:clamp(38px,12vw,52px);font-weight:600;
+  letter-spacing:-.045em;line-height:1.02;margin:6px 0 2px;color:var(--go)}
+.hero .big.neg{color:var(--stop)}
+.hero .sub{font-size:13.5px;color:var(--muted)}
+
+.pill{
+  display:inline-flex;align-items:center;gap:7px;border-radius:999px;
+  padding:8px 15px;font-size:14px;font-weight:650;letter-spacing:-.01em;margin-top:12px;
+}
+.p-go{background:var(--go-bg);color:var(--go)}
+.p-warn{background:var(--warn-bg);color:var(--warn)}
+.p-stop{background:var(--stop-bg);color:var(--stop)}
+.pill .dot{width:7px;height:7px;border-radius:99px;background:currentColor;flex:0 0 auto}
+.verdict-note{font-size:13.5px;color:var(--ink-2);margin-top:10px;line-height:1.45}
+
+/* ============ controles ============ */
+.ctl{margin-bottom:16px}
+.ctl:last-child{margin-bottom:0}
+.ctl > .lab{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:8px}
+.ctl .lab .t{font-size:13px;font-weight:600;color:var(--ink-2);letter-spacing:-.01em}
+.ctl .lab .v{font-family:var(--mono);font-size:17px;font-weight:600;letter-spacing:-.02em}
+.ctl .hint{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.4}
+
+.stepper{display:grid;grid-template-columns:var(--tap) 1fr var(--tap);gap:6px;align-items:stretch}
+.stepper button{
+  background:var(--card-2);border:1px solid var(--line);border-radius:var(--r-sm);
+  font-size:21px;font-weight:400;color:var(--ink-2);display:grid;place-items:center;
+  min-height:var(--tap);
+}
+.stepper button:active{background:var(--go-bg);color:var(--go);border-color:var(--go)}
+.stepper input{
+  width:100%;min-height:var(--tap);background:var(--card-2);border:1px solid var(--line);
+  border-radius:var(--r-sm);padding:0 12px;text-align:center;
+  font-family:var(--mono);font-size:18px;font-weight:600;letter-spacing:-.02em;
+  -moz-appearance:textfield;
+}
+.stepper input::-webkit-outer-spin-button,
+.stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.stepper input:focus{outline:none;border-color:var(--go);box-shadow:0 0 0 3px var(--go-bg)}
+
+input[type=range]{
+  -webkit-appearance:none;appearance:none;width:100%;height:28px;background:transparent;margin:6px 0 0;
+}
+input[type=range]::-webkit-slider-runnable-track{height:4px;background:var(--line);border-radius:99px}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:var(--card);
+  border:2px solid var(--go);box-shadow:0 1px 4px rgba(0,0,0,.2);margin-top:-11px;
+}
+input[type=range]::-moz-range-track{height:4px;background:var(--line);border-radius:99px}
+input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;
+  background:var(--card);border:2px solid var(--go)}
+
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chips button{
+  border:1px solid var(--line);background:var(--card-2);border-radius:999px;
+  padding:9px 14px;font-size:13.5px;font-weight:550;color:var(--ink-2);min-height:40px;
+}
+.chips button[aria-pressed="true"]{background:var(--go);border-color:var(--go);color:#fff}
+.chips button:active{transform:scale(.97)}
+.chips.scroll{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;
+  margin-inline:-16px;padding-inline:16px;padding-bottom:2px}
+.chips.scroll::-webkit-scrollbar{display:none}
+.chips.scroll button{flex:0 0 auto;font-size:13px;padding:8px 13px;min-height:38px}
+
+.seg{display:grid;gap:4px;background:var(--card-2);border:1px solid var(--line);
+  border-radius:var(--r-sm);padding:4px}
+.seg button{border-radius:8px;padding:10px 4px;font-size:14px;font-weight:600;
+  color:var(--muted);font-family:var(--mono);min-height:42px}
+.seg button[aria-pressed="true"]{background:var(--card);color:var(--go);box-shadow:var(--sh)}
+
+/* ============ régua ============ */
+.ruler{margin-top:6px}
+.ruler .track{position:relative;height:38px;background:var(--card-2);
+  border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden}
+.ruler .z{position:absolute;top:0;bottom:0}
+.z-go{background:var(--go-bg);left:0}
+.z-warn{background:var(--warn-bg)}
+.z-stop{background:var(--stop-bg)}
+.ruler .pin{position:absolute;top:0;bottom:0;width:3px;border-radius:2px}
+.pin-teto{background:var(--go)}
+.pin-ask{background:var(--stop);width:2px}
+.ruler .legend{display:flex;justify-content:space-between;margin-top:8px;
+  font-family:var(--mono);font-size:11px;color:var(--muted)}
+.ruler .legend b{display:block;color:var(--ink);font-size:13.5px;font-weight:600}
+.ruler .legend > div:last-child{text-align:right}
+
+/* ============ grids de saída ============ */
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line);
+  border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.kpis.three{grid-template-columns:repeat(3,1fr)}
+.kpis > div{background:var(--card);padding:13px 14px;min-height:74px}
+.kpis .v{font-family:var(--mono);font-size:20px;font-weight:600;letter-spacing:-.03em;
+  display:block;line-height:1.15}
+.kpis .k{font-size:11px;color:var(--muted);margin-top:4px;display:block;line-height:1.3}
+.kpis .v.go{color:var(--go)} .kpis .v.stop{color:var(--stop)} .kpis .v.warn{color:var(--warn)}
+.kpis > div.wide{grid-column:1/-1}
+.kpis > div.feat{background:var(--go-bg)}
+.kpis > div.feat .v{color:var(--go);font-size:26px}
+
+/* ============ botões ============ */
+.btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
+  min-height:50px;border-radius:var(--r-sm);font-size:16px;font-weight:650;
+  letter-spacing:-.01em;padding:0 16px;
+}
+.btn-p{background:var(--go);color:#fff}
+.btn-s{background:var(--card-2);color:var(--ink-2);border:1px solid var(--line)}
+.btn-d{background:transparent;color:var(--stop);border:1px solid var(--stop)}
+.btn:active{opacity:.82;transform:scale(.99)}
+.btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round}
+.btnrow{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+
+.fab{
+  position:fixed;right:16px;bottom:calc(var(--sab) + var(--tabs-h) + 16px);z-index:45;
+  width:56px;height:56px;border-radius:19px;background:var(--go);color:#fff;
+  display:grid;place-items:center;box-shadow:0 6px 20px -6px rgba(12,122,104,.65);
+}
+.fab svg{width:25px;height:25px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round}
+.fab:active{transform:scale(.94)}
+
+/* ============ lista de negócios ============ */
+.deal{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  padding:14px;margin-bottom:10px;box-shadow:var(--sh);
+}
+.deal .top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.deal .nm{font-size:16px;font-weight:650;letter-spacing:-.015em;line-height:1.25}
+.deal .meta{font-size:12px;color:var(--muted);margin-top:3px}
+.deal .amt{font-family:var(--mono);font-size:19px;font-weight:600;letter-spacing:-.03em;
+  white-space:nowrap;text-align:right}
+.deal .amt small{display:block;font-size:10.5px;font-weight:400;color:var(--muted);
+  letter-spacing:.06em;text-transform:uppercase;margin-top:2px;font-family:var(--ui)}
+.deal .row{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+.tag{font-family:var(--mono);font-size:11px;font-weight:500;padding:4px 9px;border-radius:7px;
+  background:var(--card-2);color:var(--muted);border:1px solid var(--line-2)}
+.tag.go{background:var(--go-bg);color:var(--go);border-color:transparent}
+.tag.warn{background:var(--warn-bg);color:var(--warn);border-color:transparent}
+.tag.stop{background:var(--stop-bg);color:var(--stop);border-color:transparent}
+.deal .acts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.deal .acts button{min-height:40px;border-radius:9px;font-size:14px;font-weight:600;
+  background:var(--card-2);border:1px solid var(--line);color:var(--ink-2)}
+.deal .acts button.sell{background:var(--go);border-color:var(--go);color:#fff}
+
+.filters{display:flex;gap:7px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px;
+  scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.filters button{white-space:nowrap;border:1px solid var(--line);background:var(--card);
+  border-radius:999px;padding:8px 14px;font-size:13.5px;font-weight:550;color:var(--muted);min-height:38px}
+#deals{padding-bottom:78px}
+.filters button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+.empty{text-align:center;padding:38px 20px;color:var(--muted)}
+.empty svg{width:42px;height:42px;stroke:currentColor;fill:none;stroke-width:1.4;opacity:.45;
+  margin-bottom:12px}
+.empty p{font-size:14.5px;max-width:34ch;margin-inline:auto}
+
+/* ============ sheet / modal ============ */
+.sheet{position:fixed;inset:0;z-index:80;display:flex;align-items:flex-end;justify-content:center}
+.sheet .scrim{position:absolute;inset:0;background:rgba(8,16,14,.55);backdrop-filter:blur(3px)}
+.sheet .body{
+  position:relative;width:100%;max-width:720px;max-height:92vh;overflow-y:auto;
+  background:var(--bg);border-radius:20px 20px 0 0;
+  padding:8px 16px calc(var(--sab) + 22px);
+  -webkit-overflow-scrolling:touch;
+}
+.sheet .grab{width:38px;height:4px;border-radius:99px;background:var(--line);
+  margin:6px auto 12px}
+.sheet h3{font-size:19px;margin-bottom:4px}
+.sheet .lead{font-size:13.5px;color:var(--muted);margin-bottom:16px}
+.fld{margin-bottom:14px}
+.fld label{display:block;font-size:12.5px;font-weight:600;color:var(--ink-2);margin-bottom:6px}
+.fld input,.fld select,.fld textarea{
+  width:100%;min-height:var(--tap);background:var(--card);border:1px solid var(--line);
+  border-radius:var(--r-sm);padding:11px 13px;font-size:16px;
+}
+.fld input[inputmode="decimal"],.fld input[type=number]{font-family:var(--mono);
+  font-variant-numeric:tabular-nums;font-weight:600}
+.fld textarea{min-height:74px;resize:vertical;font-family:var(--ui);font-size:15px}
+.fld input:focus,.fld select:focus,.fld textarea:focus{outline:none;border-color:var(--go);
+  box-shadow:0 0 0 3px var(--go-bg)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* ============ gráfico ============ */
+.chart{margin-top:4px}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.chart .tip{
+  position:absolute;pointer-events:none;background:var(--ink);color:var(--bg);
+  border-radius:9px;padding:8px 11px;font-size:12.5px;line-height:1.45;
+  box-shadow:0 6px 20px -8px rgba(0,0,0,.6);z-index:20;white-space:nowrap;
+  font-family:var(--mono);
+}
+.chartwrap{position:relative}
+
+/* ============ manual ============ */
+.prose{font-family:var(--serif);font-size:17px;line-height:1.62;color:var(--ink-2)}
+.prose h3{font-family:var(--ui);font-size:18.5px;color:var(--ink);margin:26px 0 8px}
+.prose h3:first-child{margin-top:0}
+.prose strong{color:var(--ink);font-weight:650}
+.acc{border:1px solid var(--line);border-radius:var(--r);background:var(--card);
+  margin-bottom:10px;overflow:hidden;box-shadow:var(--sh)}
+.acc > summary{
+  list-style:none;padding:15px 16px;font-size:16px;font-weight:650;letter-spacing:-.015em;
+  display:flex;justify-content:space-between;align-items:center;gap:12px;cursor:pointer;
+}
+.acc > summary::-webkit-details-marker{display:none}
+.acc > summary .n{font-family:var(--mono);font-size:11px;color:var(--go);font-weight:600;
+  letter-spacing:.06em}
+.acc > summary .chev{width:17px;height:17px;stroke:var(--muted);fill:none;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round;transition:transform .18s;flex:0 0 auto}
+.acc[open] > summary .chev{transform:rotate(180deg)}
+.acc .inner{padding:0 16px 16px;border-top:1px solid var(--line-2);padding-top:14px}
+
+.princ{display:grid;gap:0}
+.princ article{padding:15px 0;border-bottom:1px solid var(--line-2)}
+.princ article:last-child{border-bottom:0;padding-bottom:0}
+.princ h4{font-size:16px;font-weight:650;margin-bottom:4px;letter-spacing:-.015em}
+.princ p{font-size:15px;color:var(--ink-2);margin:0;line-height:1.5}
+.princ .mk{font-family:var(--mono);font-size:10.5px;color:var(--go);font-weight:600;
+  letter-spacing:.1em;display:block;margin-bottom:5px}
+
+.mini{display:grid;gap:9px}
+.mini > div{background:var(--card-2);border-radius:var(--r-sm);padding:12px 13px}
+.mini h5{margin:0 0 3px;font-size:14.5px;font-weight:650;letter-spacing:-.01em}
+.mini p{margin:0;font-size:13.5px;color:var(--muted);line-height:1.45}
+.mini .g{font-family:var(--mono);font-size:11px;color:var(--go);font-weight:600;
+  display:block;margin-top:5px}
+
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);
+  border-radius:var(--r-sm);background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:330px}
+th{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--muted);text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);
+  font-weight:500;background:var(--card-2)}
+td{padding:10px 12px;border-bottom:1px solid var(--line-2);color:var(--ink-2);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td strong{color:var(--ink);font-weight:650}
+td.n,th.n{text-align:right;font-family:var(--mono);white-space:nowrap}
+
+figure{margin:14px 0 0}
+figure svg{display:block;width:100%;height:auto;background:var(--card-2);
+  border:1px solid var(--line);border-radius:var(--r-sm)}
+figcaption{font-size:12.5px;color:var(--muted);margin-top:8px;line-height:1.45}
+
+.wk{margin-bottom:12px}
+.wk > .h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;
+  margin-bottom:6px;padding-inline:2px}
+.wk > .h .t{font-size:14.5px;font-weight:650;letter-spacing:-.015em}
+.wk > .h .s{font-family:var(--mono);font-size:10px;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--muted)}
+.wk ul{list-style:none;margin:0;padding:0;background:var(--card);border:1px solid var(--line);
+  border-radius:var(--r-sm);overflow:hidden}
+.wk li + li{border-top:1px solid var(--line-2)}
+.wk label{display:grid;grid-template-columns:auto 1fr;gap:11px;align-items:start;
+  padding:12px 14px;font-size:14.5px;color:var(--ink-2);line-height:1.45;cursor:pointer}
+.wk label:active{background:var(--card-2)}
+.wk input[type=checkbox]{width:19px;height:19px;margin:1px 0 0;accent-color:var(--go)}
+.wk input:checked + span{color:var(--muted);text-decoration:line-through;
+  text-decoration-color:var(--line)}
+.prog{height:5px;background:var(--line);border-radius:99px;overflow:hidden;margin:2px 0 6px}
+.prog i{display:block;height:100%;background:var(--go);border-radius:99px;transition:width .25s}
+
+.dont > div{display:grid;grid-template-columns:auto 1fr;gap:11px;padding:13px 0;
+  border-bottom:1px solid var(--line-2)}
+.dont > div:last-child{border-bottom:0}
+.dont .x{color:var(--stop);font-weight:700;font-size:15px;line-height:1.4}
+.dont b{display:block;font-size:15px;font-weight:650;margin-bottom:3px;letter-spacing:-.01em}
+.dont p{margin:0;font-size:13.5px;color:var(--muted);line-height:1.45}
+
+.callout{background:var(--go-bg);border-radius:var(--r-sm);padding:13px 15px;
+  font-size:14.5px;color:var(--ink-2);line-height:1.5}
+.callout.stop{background:var(--stop-bg)}
+.callout strong{color:var(--ink)}
+.callout p:last-child{margin-bottom:0}
+
+.toast{
+  position:fixed;left:50%;transform:translateX(-50%);
+  bottom:calc(var(--sab) + var(--tabs-h) + 18px);z-index:90;
+  background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:11px;
+  font-size:14px;font-weight:550;box-shadow:0 8px 26px -8px rgba(0,0,0,.6);
+  opacity:0;pointer-events:none;transition:opacity .2s, transform .2s;
+}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(-4px)}
+
+@media (min-width:600px){
+  .kpis{grid-template-columns:repeat(3,1fr)}
+  main{padding-inline:20px}
+}
+</style>
+</head>
+<body>
+
+<header class="appbar">
+  <svg class="mark" viewBox="80 136 352 252" aria-hidden="true">
+    <path fill="#35C7A9" d="M96 212 C96 178 122 152 158 152 L354 152 C390 152 416 178 416 212
+      C416 246 407 290 392 330 C382 356 360 372 334 372 C311 372 293 358 283 338
+      L272 315 C267 305 262 301 256 301 C250 301 245 305 240 315 L229 338
+      C219 358 201 372 178 372 C152 372 130 356 120 330 C105 290 96 246 96 212 Z"/>
+    <rect x="128" y="209" width="78" height="26" rx="8" fill="#10201C"/>
+    <rect x="154" y="183" width="26" height="78" rx="8" fill="#10201C"/>
+    <circle cx="318" cy="248" r="19" fill="#10201C"/>
+    <circle cx="362" cy="204" r="19" fill="#10201C"/>
+  </svg>
+  <div>
+    <div class="ttl" id="bar-title">Painel</div>
+    <div class="sub" id="bar-sub">flip de console · MS</div>
+  </div>
+  <div class="spacer"></div>
+  <button class="iconbtn" id="btn-theme" aria-label="Alternar tema">
+    <svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+  </button>
+  <button class="iconbtn" id="btn-data" aria-label="Backup e dados">
+    <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5.5" rx="8" ry="3"/><path d="M4 5.5v13c0 1.7 3.6 3 8 3s8-1.3 8-3v-13"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>
+  </button>
+</header>
+
+<main>
+  <!-- ============ PAINEL ============ -->
+  <section class="view" id="v-painel">
+    <div class="kpis three" id="k-top"></div>
+    <div class="card" style="margin-top:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:4px">
+        <h3 style="font-size:16px" id="chart-title">Lucro por mês</h3>
+      </div>
+      <p style="font-size:12.5px;color:var(--muted);margin:2px 0 12px" id="chart-sub">Quando o dinheiro entrou de verdade</p>
+      <div class="seg" style="grid-template-columns:1fr 1fr;margin-bottom:14px">
+        <button id="cm-lucro" aria-pressed="true">Lucro</button>
+        <button id="cm-fat" aria-pressed="false">Faturamento</button>
+      </div>
+      <div class="chartwrap"><div class="chart" id="chart"></div></div>
+    </div>
+    <div class="sec">Saúde da operação</div>
+    <div class="kpis" id="k-saude"></div>
+    <div class="sec">Por categoria</div>
+    <div class="tw"><table id="t-cat"><tbody></tbody></table></div>
+  </section>
+
+  <!-- ============ NEGÓCIOS ============ -->
+  <section class="view" id="v-negocios" hidden>
+    <div class="filters" id="filters">
+      <button data-f="todos" aria-pressed="true">Todos</button>
+      <button data-f="estoque" aria-pressed="false">Em estoque</button>
+      <button data-f="vendido" aria-pressed="false">Vendidos</button>
+      <button data-f="atrasado" aria-pressed="false">Encalhados</button>
+    </div>
+    <div id="deals"></div>
+  </section>
+
+  <!-- ============ RÉGUA ============ -->
+  <section class="view" id="v-regua" hidden>
+    <div class="hero">
+      <div class="cap">Pague no máximo</div>
+      <div class="big mono" id="r-teto">R$ 0</div>
+      <div class="sub" id="r-teto-sub">—</div>
+      <div class="pill p-go" id="r-pill"><span class="dot"></span><span>—</span></div>
+      <div class="verdict-note" id="r-note"></div>
+    </div>
+
+    <div class="card">
+      <div class="ctl">
+        <div class="lab"><span class="t">Por quanto você vende</span><span class="v mono" id="lv-venda">R$ 1.350</span></div>
+        <div class="chips scroll" id="presets" style="margin-bottom:10px"></div>
+        <div class="stepper">
+          <button type="button" data-step="r-venda" data-d="-50" aria-label="Diminuir">−</button>
+          <input id="r-venda" type="number" inputmode="decimal" value="1350" min="0" step="50">
+          <button type="button" data-step="r-venda" data-d="50" aria-label="Aumentar">+</button>
+        </div>
+        <input type="range" id="r-venda-s" min="100" max="5000" step="50" value="1350" aria-label="Preço de venda">
+        <div class="hint">O preço de vendas concluídas, não o que os anúncios pedem.</div>
+      </div>
+
+      <div class="ctl">
+        <div class="lab"><span class="t">Margem alvo</span><span class="v mono" id="lv-margem">35%</span></div>
+        <div class="seg" style="grid-template-columns:repeat(5,1fr)" id="seg-margem">
+          <button data-m="25">25%</button>
+          <button data-m="30">30%</button>
+          <button data-m="35" aria-pressed="true">35%</button>
+          <button data-m="40">40%</button>
+          <button data-m="50">50%</button>
+        </div>
+        <div class="hint">35% é o piso para console. Abaixo disso o risco de defeito oculto come o lucro.</div>
+      </div>
+
+      <div class="ctl">
+        <div class="lab"><span class="t">Como você recebe</span></div>
+        <div class="chips" id="canais"></div>
+        <div class="hint" id="canal-hint">PIX é o padrão. Repassando a taxa, o teto não muda.</div>
+      </div>
+
+      <div class="ctl">
+        <div class="lab"><span class="t">Peças e insumos</span><span class="v mono" id="lv-insumo">R$ 30</span></div>
+        <div class="chips" id="insumos"></div>
+        <div class="hint">Pasta térmica R$ 12 · potenciômetro R$ 15 · os dois R$ 30.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ctl" style="margin-bottom:12px">
+        <div class="lab"><span class="t">Quanto ele está pedindo</span><span class="v mono" id="lv-pedido">R$ 950</span></div>
+        <div class="stepper">
+          <button type="button" data-step="r-pedido" data-d="-50" aria-label="Diminuir">−</button>
+          <input id="r-pedido" type="number" inputmode="decimal" value="950" min="0" step="50">
+          <button type="button" data-step="r-pedido" data-d="50" aria-label="Aumentar">+</button>
+        </div>
+      </div>
+      <div class="ruler">
+        <div class="track">
+          <div class="z z-go" id="z-go"></div>
+          <div class="z z-warn" id="z-warn"></div>
+          <div class="z z-stop" id="z-stop"></div>
+          <div class="pin pin-teto" id="pin-teto"></div>
+          <div class="pin pin-ask" id="pin-ask"></div>
+        </div>
+        <div class="legend">
+          <div>Seu teto<b class="mono" id="lg-teto">—</b></div>
+          <div>Ele pede<b class="mono" id="lg-ask">—</b></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="kpis" id="r-kpis" style="margin-bottom:14px"></div>
+
+    <button class="btn btn-p" id="r-registrar">
+      <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+      Registrar como negócio
+    </button>
+    <p style="font-size:12.5px;color:var(--muted);margin:10px 2px 0;line-height:1.45">
+      Deslocamento fora da conta — você abate rodando Uber no trajeto.
+    </p>
+  </section>
+
+  <!-- ============ GIRO ============ -->
+  <section class="view" id="v-giro" hidden>
+    <div class="hero">
+      <div class="cap">Lucro por mês nessa configuração</div>
+      <div class="big mono" id="g-mes">R$ 0</div>
+      <div class="sub" id="g-sub">—</div>
+    </div>
+
+    <div class="card">
+      <div class="ctl">
+        <div class="lab"><span class="t">Capital de trabalho</span><span class="v mono" id="lv-cap">R$ 1.800</span></div>
+        <input type="range" id="g-capital" min="300" max="10000" step="100" value="1800" aria-label="Capital de trabalho">
+        <div class="hint">Só o que pode ficar preso sem afetar o mês.</div>
+      </div>
+      <div class="ctl">
+        <div class="lab"><span class="t">Preço médio de compra</span><span class="v mono" id="lv-ticket">R$ 700</span></div>
+        <input type="range" id="g-ticket" min="80" max="3000" step="20" value="700" aria-label="Ticket de compra">
+      </div>
+      <div class="ctl">
+        <div class="lab"><span class="t">Lucro por unidade</span><span class="v mono" id="lv-lucro">R$ 450</span></div>
+        <input type="range" id="g-lucro" min="20" max="1500" step="10" value="450" aria-label="Lucro por unidade">
+      </div>
+      <div class="ctl">
+        <div class="lab"><span class="t">Dias até o dinheiro voltar</span><span class="v mono" id="lv-ciclo">21 d</span></div>
+        <input type="range" id="g-ciclo" min="3" max="90" step="1" value="21" aria-label="Dias de ciclo">
+        <div class="hint">Da compra ao PIX do comprador — não ao dia do anúncio.</div>
+      </div>
+      <div class="ctl">
+        <div class="lab"><span class="t">Reserva intocada</span><span class="v mono" id="lv-res">25%</span></div>
+        <input type="range" id="g-reserva" min="0" max="60" step="5" value="25" aria-label="Reserva">
+        <div class="hint">Para insumos e para a oportunidade que aparece numa terça à noite.</div>
+      </div>
+    </div>
+
+    <div class="kpis" id="g-kpis"></div>
+    <div class="card flat" style="margin-top:14px">
+      <p style="font-size:14.5px;color:var(--ink-2);margin:0;line-height:1.5" id="g-diag"></p>
+    </div>
+
+    <div class="sec">A escada de capital</div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Faixa</th><th>O que compra</th><th class="n">Ciclo</th></tr></thead>
+        <tbody>
+          <tr><td><strong>até 1.000</strong></td><td>Controles, jogos, headsets, cabos</td><td class="n">7–15 d</td></tr>
+          <tr style="background:var(--go-bg)"><td><strong>1.000–2.500</strong></td><td>Um console + itens pequenos em paralelo</td><td class="n">15–30 d</td></tr>
+          <tr><td><strong>2.500–5.000</strong></td><td>Dois a três consoles girando juntos</td><td class="n">15–30 d</td></tr>
+          <tr><td><strong>5.000+</strong></td><td>Estoque montado, categorias paralelas</td><td class="n">—</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout" style="margin-top:12px">
+      <p><strong>Na sua faixa, o erro é travar tudo num aparelho só.</strong> Com R$ 1.800: R$ 800 num console, R$ 400 em controles e jogos (ciclo de uma semana, dinheiro voltando enquanto o console não vende) e R$ 600 de reserva. Três relógios diferentes correndo.</p>
+    </div>
+  </section>
+
+  <!-- ============ MANUAL ============ -->
+  <section class="view" id="v-manual" hidden>
+    <details class="acc" open>
+      <summary><span><span class="n">01</span> &nbsp;Mentalidade</span>
+        <svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></summary>
+      <div class="inner">
+        <div class="princ">
+          <article><span class="mk">01</span><h4>Você não compra consoles. Compra anúncios ruins.</h4>
+            <p>O aparelho é commodity. O que é escasso é o anúncio malfeito de alguém cansado de esperar.</p></article>
+          <article><span class="mk">02</span><h4>Giro vence margem.</h4>
+            <p>R$ 300 quatro vezes no mês bate R$ 800 uma vez. A pergunta é em quantos dias o dinheiro voltou.</p></article>
+          <article><span class="mk">03</span><h4>O preço é decidido em casa.</h4>
+            <p>Você chega com o número pronto. Lá você só compara e compra ou não compra.</p></article>
+          <article><span class="mk">04</span><h4>Ir embora é de graça.</h4>
+            <p>Não comprar custa a tarde. Comprar errado custa sessenta dias de capital travado mais o desconto para se livrar.</p></article>
+          <article><span class="mk">05</span><h4>Capital parado é o prejuízo que não aparece.</h4>
+            <p>Não tem linha vermelha e não dói. O console encalhado parece patrimônio e é dinheiro morto.</p></article>
+          <article><span class="mk">06</span><h4>Defeito declarado converte mais que defeito escondido.</h4>
+            <p>Quem já viu a foto do risco e veio mesmo assim, veio para comprar.</p></article>
+          <article><span class="mk">07</span><h4>Você não tem uma loja. Tem um ciclo.</h4>
+            <p>Loja mede faturamento. Ciclo mede velocidade e retorno sobre o que está empregado.</p></article>
+        </div>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary><span><span class="n">02</span> &nbsp;As seis métricas</span>
+        <svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></summary>
+      <div class="inner">
+        <p style="font-size:14.5px;color:var(--muted);margin-bottom:14px">Faturamento não está entre elas, de propósito: não diz nada sem capital, dias e horas.</p>
+        <div class="mini">
+          <div><h5>Dias em estoque</h5><p>Da compra à venda, não do anúncio. É a métrica mãe — define quantas vezes o mesmo dinheiro trabalha no ano. Aos 14 dias sem contato, refaça o anúncio do zero; aos 30, corte 10%.</p><span class="g">meta ≤ 30 d · ideal ≤ 15 d</span></div>
+          <div><h5>Markup</h5><p>Lucro sobre o custo — é assim que se forma preço. Não confunda com margem, que é lucro sobre a venda: markup de 100% é margem de 50%.</p><span class="g">meta ≥ 55% de markup</span></div>
+          <div><h5>Reais por hora</h5><p>Inclui garimpo, mensagens, bancada, fotos e atendimento. Quase ninguém conta as mensagens — e são elas que comem a tarde.</p><span class="g">meta: acima do Uber</span></div>
+          <div><h5>Conversão de garimpo</h5><p>Compras fechadas sobre contatos feitos. Você deve receber muito "não" — é sinal de que o teto está apertado.</p><span class="g">normal: 1 a cada 8–12</span></div>
+          <div><h5>Capital ocioso</h5><p>Dinheiro que não está em item nem em reserva. Rende zero enquanto você acha que está capitalizado.</p><span class="g">meta &lt; 20%</span></div>
+          <div><h5>Índice de retorno</h5><p>Devoluções sobre vendas. Sobe por um motivo só: defeito não declarado. Vendendo com habitualidade você é fornecedor pelo CDC — 90 dias de garantia legal, mesmo em usado.</p><span class="g">meta &lt; 5%</span></div>
+        </div>
+        <div class="callout" style="margin-top:14px">
+          <p><strong>Revise a cada cinco unidades, não todo mês.</strong> Três perguntas com os dados na frente: meu R$/hora bate a alternativa? Qual categoria deu a melhor margem? Qual regra minha custou dinheiro? Mude uma regra por revisão — senão você não sabe qual funcionou.</p>
+        </div>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary><span><span class="n">03</span> &nbsp;Fotografia</span>
+        <svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></summary>
+      <div class="inner">
+        <p style="font-size:14.5px;color:var(--ink-2);margin-bottom:6px">A foto é onde a maior parte do lucro é criada — é a única coisa que o comprador avalia antes de decidir falar com você. O setup inteiro custa oito reais.</p>
+        <figure>
+          <svg viewBox="0 0 640 330" role="img" aria-label="Planta do setup: janela à esquerda, cartolina branca em L, console ao centro, refletor à direita e celular apoiado de frente">
+            <rect x="110" y="48" width="430" height="222" rx="4" fill="currentColor" opacity="0.05"/>
+            <rect x="24" y="72" width="13" height="168" rx="2" fill="#A8710C"/>
+            <text x="31" y="63" font-family="ui-monospace,monospace" font-size="10.5" fill="#A8710C" text-anchor="middle" font-weight="600">JANELA</text>
+            <text x="8" y="258" font-family="ui-monospace,monospace" font-size="9" fill="#8A9794" text-anchor="start">sem sol direto</text>
+            <g stroke="#A8710C" stroke-width="1.2" opacity="0.45" stroke-dasharray="4 4">
+              <line x1="42" y1="104" x2="258" y2="142"/><line x1="42" y1="156" x2="258" y2="162"/><line x1="42" y1="208" x2="258" y2="184"/>
+            </g>
+            <polygon points="258,162 246,156 246,168" fill="#A8710C" opacity="0.75"/>
+            <path d="M 160 86 L 372 86 L 372 112 Q 372 130 354 137 L 160 194 Z" fill="#0C7A68" opacity="0.14" stroke="#0C7A68" stroke-width="1.4"/>
+            <text x="196" y="104" font-family="ui-monospace,monospace" font-size="9.5" fill="#0C7A68" font-weight="600">CARTOLINA BRANCA A2</text>
+            <text x="196" y="117" font-family="ui-monospace,monospace" font-size="8.5" fill="#8A9794">curvada em L, sem vinco</text>
+            <rect x="278" y="152" width="84" height="45" rx="3" fill="currentColor" opacity="0.8"/>
+            <rect x="285" y="158" width="70" height="5" rx="2.5" fill="#EFF2F1" opacity="0.5"/>
+            <text x="320" y="216" font-family="ui-monospace,monospace" font-size="9.5" fill="currentColor" text-anchor="middle" font-weight="600" opacity="0.85">CONSOLE</text>
+            <rect x="434" y="124" width="10" height="94" rx="2" fill="#0C7A68" opacity="0.5"/>
+            <text x="458" y="158" font-family="ui-monospace,monospace" font-size="9.5" fill="#0C7A68" font-weight="600">REFLETOR</text>
+            <text x="458" y="171" font-family="ui-monospace,monospace" font-size="8.5" fill="#8A9794">2ª cartolina de pé</text>
+            <text x="458" y="183" font-family="ui-monospace,monospace" font-size="8.5" fill="#8A9794">clareia a sombra</text>
+            <g stroke="#0C7A68" stroke-width="1" opacity="0.38" stroke-dasharray="3 3">
+              <line x1="430" y1="158" x2="372" y2="168"/><line x1="430" y1="190" x2="372" y2="184"/>
+            </g>
+            <rect x="306" y="242" width="28" height="50" rx="4" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.8"/>
+            <circle cx="320" cy="260" r="5.5" fill="none" stroke="currentColor" stroke-width="1.3" opacity="0.8"/>
+            <line x1="320" y1="238" x2="320" y2="204" stroke="currentColor" stroke-width="1" opacity="0.38" stroke-dasharray="3 3"/>
+            <text x="320" y="308" font-family="ui-monospace,monospace" font-size="9.5" fill="currentColor" text-anchor="middle" font-weight="600" opacity="0.85">CELULAR APOIADO</text>
+            <text x="616" y="62" font-family="ui-monospace,monospace" font-size="8.5" fill="#8A9794" text-anchor="end">luz a 45° pela esquerda</text>
+            <text x="616" y="75" font-family="ui-monospace,monospace" font-size="8.5" fill="#8A9794" text-anchor="end">flash sempre desligado</text>
+          </svg>
+          <figcaption>Duas cartolinas e uma pilha de livros. A luz difusa entra pela esquerda, o L elimina a linha do horizonte atrás do produto e a segunda cartolina devolve luz na sombra do lado direito.</figcaption>
+        </figure>
+
+        <h3 style="font-family:var(--ui);font-size:16px;margin:20px 0 8px">Quatro ajustes no celular, uma vez só</h3>
+        <div class="mini">
+          <div><h5>Modo Pro</h5><p>Sai do automático. Sem ele, os outros três não existem.</p></div>
+          <div><h5>Balanço de branco travado</h5><p>Preset "nublado", perto de 6500 K. No automático o fundo sai amarelo numa foto e azul na outra.</p></div>
+          <div><h5>ISO no menor valor</h5><p>Menos ruído. Com luz de janela dá e sobra.</p></div>
+          <div><h5>HDR desligado</h5><p>HDR inventa contraste e deixa a foto com cara de filtro.</p></div>
+        </div>
+        <p style="font-size:14px;color:var(--muted);margin-top:12px">Nunca use zoom digital — aproxime o celular. E nunca fotografe segurando: apoie, mesmo que numa pilha de livros.</p>
+
+        <h3 style="font-family:var(--ui);font-size:16px;margin:22px 0 8px">As sete fotos, nesta ordem</h3>
+        <div class="tw">
+          <table><tbody>
+            <tr><td class="n"><strong>01</strong></td><td><strong>Capa, fundo branco.</strong> Produto inteiro, sem tocar as bordas. É a única que decide se ele clica.</td></tr>
+            <tr><td class="n"><strong>02</strong></td><td><strong>Conjunto completo.</strong> Tudo que vai junto, arrumado de cima.</td></tr>
+            <tr><td class="n"><strong>03</strong></td><td><strong>Ligado, com jogo na TV.</strong> Prova de funcionamento — a que mais converte e quase ninguém faz.</td></tr>
+            <tr><td class="n"><strong>04</strong></td><td><strong>Traseira e etiqueta.</strong> Etiqueta de série no lugar, número borrado. Sinaliza procedência.</td></tr>
+            <tr><td class="n"><strong>05</strong></td><td><strong>Close de cada defeito.</strong> Honestidade aqui derruba reclamação lá na frente.</td></tr>
+            <tr><td class="n"><strong>06</strong></td><td><strong>Controles em detalhe.</strong> Grips, gatilhos e analógicos — é onde procuram desgaste.</td></tr>
+            <tr><td class="n"><strong>07</strong></td><td><strong>Vídeo de 40 segundos.</strong> Ligar, entrar no jogo, mexer nos dois analógicos.</td></tr>
+          </tbody></table>
+        </div>
+
+        <h3 style="font-family:var(--ui);font-size:16px;margin:22px 0 8px">Regras do Mercado Livre · Eletrônicos</h3>
+        <div class="tw">
+          <table><tbody>
+            <tr><td><strong>1200 × 1200, quadrado</strong></td><td>O lado maior precisa de ao menos 500 px para o zoom funcionar.</td></tr>
+            <tr><td><strong>Fundo branco na capa</strong></td><td>Obrigatório na categoria. A cartolina já entrega quase isso.</td></tr>
+            <tr><td><strong>Produto 100% visível</strong></td><td>Sem corte e sem encostar nas bordas. Deixe respiro.</td></tr>
+            <tr><td><strong>Capa sem nada escrito</strong></td><td>Proibido logo, marca d'água, telefone, QR, preço, selo ou moldura.</td></tr>
+            <tr><td><strong>Um produto por capa</strong></td><td>Combos vão da segunda foto em diante.</td></tr>
+          </tbody></table>
+        </div>
+
+        <h3 style="font-family:var(--ui);font-size:16px;margin:22px 0 8px">Os cinco erros que derrubam o preço</h3>
+        <div class="dont">
+          <div><span class="x">1</span><div><b>Flash</b><p>Estoura o plástico brilhante e cria sombra dura atrás.</p></div></div>
+          <div><span class="x">2</span><div><b>Chão, cama ou sofá de fundo</b><p>Comunica "quero me livrar disso". Cartolina custa R$ 4.</p></div></div>
+          <div><span class="x">3</span><div><b>Cabos emaranhados na capa</b><p>Cabos vão em foto própria, enrolados.</p></div></div>
+          <div><span class="x">4</span><div><b>Luz de lâmpada amarela</b><p>Deixa o plástico com cara de amarelado — justamente o que derruba preço.</p></div></div>
+          <div><span class="x">5</span><div><b>Foto de longe</b><p>Produto ocupando 20% do quadro. Aproxime até preencher quase tudo.</p></div></div>
+        </div>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary><span><span class="n">04</span> &nbsp;Vistoria de 8 minutos</span>
+        <svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></summary>
+      <div class="inner">
+        <div class="callout stop" style="margin-bottom:14px">
+          <p><strong>Antes de qualquer teste:</strong> perfil social real, nome do PIX conferido na tela, foto do RG e do CPF, número de série anotado, recibo assinado. Preço absurdamente abaixo do mercado é o sinal que a lei de receptação descreve — e para servidor público a conta não para no criminal.</p>
+        </div>
+        <div class="wk" id="wk-vistoria"></div>
+        <h3 style="font-family:var(--ui);font-size:16px;margin:22px 0 8px">Abatimento por defeito</h3>
+        <div class="tw">
+          <table>
+            <thead><tr><th>Encontrou</th><th class="n">Abata</th><th>Custa resolver</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Esquenta / desliga sozinho</strong></td><td class="n">150–250</td><td>R$ 12 de pasta e 40 min</td></tr>
+              <tr><td><strong>Drift no analógico</strong></td><td class="n">80–120</td><td>R$ 15 a peça, com solda</td></tr>
+              <tr><td><strong>Não lê disco</strong></td><td class="n">200–350</td><td>Lente ou troca de laser</td></tr>
+              <tr><td><strong>Carcaça riscada / craquelada</strong></td><td class="n">60–120</td><td>Polimento; craquelado não sai</td></tr>
+              <tr><td><strong>Cheiro de cigarro</strong></td><td class="n">100–200</td><td>Carcaça resolve; placa não</td></tr>
+              <tr><td><strong>Falta fonte ou HDMI</strong></td><td class="n">40–90</td><td>Peça de reposição</td></tr>
+              <tr><td><strong>Lacre rompido</strong></td><td class="n">80–150</td><td>Risco — e vai no seu anúncio</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary><span><span class="n">05</span> &nbsp;Primeiros 30 dias</span>
+        <svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></summary>
+      <div class="inner">
+        <p style="font-size:14.5px;color:var(--ink-2);margin-bottom:14px">O plantão é janela de <strong>observação</strong>: vinte minutos de garimpo no celular. A folga é janela de <strong>ação</strong>. Os dois nunca se misturam — é isso que faz a escala virar vantagem.</p>
+        <div class="prog"><i id="prog-bar" style="width:0%"></i></div>
+        <p class="mono" style="font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:0 0 14px" id="prog-txt">0 de 0</p>
+        <div id="wk-largada"></div>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary><span><span class="n">06</span> &nbsp;O que não fazer</span>
+        <svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></summary>
+      <div class="inner">
+        <div class="dont">
+          <div><span class="x">✕</span><div><b>Comprar sem recibo e sem cópia do documento</b><p>Receptação tem forma culposa. Recibo, RG, CPF, número de série e PIX rastreável — sempre.</p></div></div>
+          <div><span class="x">✕</span><div><b>Pagar em dinheiro vivo</b><p>Sem rastro não há prova de boa-fé. PIX com o nome conferido antes de apertar.</p></div></div>
+          <div><span class="x">✕</span><div><b>Pretinho de pneu no plástico</b><p>Esconde o craquelado por três semanas, migra para o controle e entra na ventilação. Use revitalizador base água, no pano.</p></div></div>
+          <div><span class="x">✕</span><div><b>PS5 não leva pasta térmica</b><p>Usa metal líquido, condutivo, com gaxeta de contenção. No PS5 só limpeza de ventoinha e dissipador — não abra o bloco térmico.</p></div></div>
+          <div><span class="x">✕</span><div><b>Escrever "impecável" sem ter testado</b><p>A oferta vincula e a garantia legal é de 90 dias. Escreva o que testou, fotografe o que está gasto.</p></div></div>
+          <div><span class="x">✕</span><div><b>Parcelar sem repassar a taxa</b><p>12x come 12,4%. Anuncie o preço PIX e informe o do cartão quando perguntarem — Lei 13.455/2017.</p></div></div>
+          <div><span class="x">✕</span><div><b>Dois itens iguais parados ao mesmo tempo</b><p>Você compete consigo mesmo e trava o dobro de capital no mesmo risco.</p></div></div>
+          <div><span class="x">✕</span><div><b>Ir buscar à noite ou em lugar isolado</b><p>Não tem lucro que pague. De dia, movimentado, e alguém sabendo onde você está.</p></div></div>
+        </div>
+      </div>
+    </details>
+
+    <p style="font-size:12px;color:var(--muted);text-align:center;margin:22px 0 0;line-height:1.5">
+      Taxas e preços verificados em 17/09/2026.<br>Reconfira a cada trimestre.
+    </p>
+  </section>
+</main>
+
+<button class="fab" id="fab" hidden aria-label="Novo negócio">
+  <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+</button>
+
+<nav class="tabs" role="tablist">
+  <button role="tab" data-v="painel" aria-selected="true">
+    <svg viewBox="0 0 24 24"><path d="M4 19V10M10 19V5M16 19v-6M22 19H2"/></svg><span>Painel</span></button>
+  <button role="tab" data-v="negocios" aria-selected="false">
+    <svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg><span>Negócios</span></button>
+  <button role="tab" data-v="regua" aria-selected="false">
+    <svg viewBox="0 0 24 24"><rect x="2" y="8" width="20" height="8" rx="2"/><path d="M7 8v3M12 8v4M17 8v3"/></svg><span>Régua</span></button>
+  <button role="tab" data-v="giro" aria-selected="false">
+    <svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-1.6 5.6"/><path d="M20 5v6h-6"/></svg><span>Giro</span></button>
+  <button role="tab" data-v="manual" aria-selected="false">
+    <svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20v3H6.5"/></svg><span>Manual</span></button>
+</nav>
+
+<div class="toast" id="toast"></div>
+<div id="sheet-host"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ===================== util ===================== */
+var BRL  = new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0});
+var BRL2 = new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL',minimumFractionDigits:2,maximumFractionDigits:2});
+function money(n){ return BRL.format(isFinite(n)?n:0); }
+function pc(x){ return (isFinite(x)? (x*100) : 0).toFixed(0).replace('.',',') + '%'; }
+function $(id){ return document.getElementById(id); }
+function el(t,c,x){ var e=document.createElement(t); if(c)e.className=c; if(x!=null)e.textContent=x; return e; }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(m){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]; }); }
+function today(){ var d=new Date(); return d.toISOString().slice(0,10); }
+function days(a,b){ if(!a) return 0; var A=new Date(a+'T12:00'), B=b?new Date(b+'T12:00'):new Date();
+  return Math.max(0, Math.round((B-A)/864e5)); }
+function mesLabel(iso){
+  var M=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  var p=iso.split('-'); return M[parseInt(p[1],10)-1] + '/' + p[0].slice(2);
+}
+var toastT;
+function toast(msg){
+  var t=$('toast'); t.textContent=msg; t.classList.add('on');
+  clearTimeout(toastT); toastT=setTimeout(function(){ t.classList.remove('on'); },2100);
+}
+
+/* ===================== dados de referência ===================== */
+var CANAIS = [
+  {k:'pix',   n:'PIX / dinheiro',  p:0,      f:0,  h:'Zero taxa, cai na hora. É o padrão.'},
+  {k:'rep',   n:'Taxa repassada',  p:0,      f:0,  h:'O comprador paga o acréscimo — Lei 13.455/2017. O teto não muda.'},
+  {k:'deb',   n:'Débito',          p:0.0137, f:0,  h:'InfiniteTap 1,37%, cai em 1 dia útil.'},
+  {k:'cr1',   n:'Crédito 1x',      p:0.0315, f:0,  h:'InfiniteTap 3,15%.'},
+  {k:'cr10',  n:'Crédito 10x',     p:0.1106, f:0,  h:'InfiniteTap 11,06%. Sem repasse, come um terço do lucro.'},
+  {k:'cr12',  n:'Crédito 12x',     p:0.1240, f:0,  h:'InfiniteTap 12,40%. Sem repasse, esquece.'},
+  {k:'ml',    n:'Mercado Livre',   p:0.13,   f:55, h:'13% de comissão + frete grátis obrigatório acima de R$ 79.'},
+  {k:'shop',  n:'Shopee',          p:0.14,   f:26, h:'14% + R$ 26 fixos por item.'}
+];
+function canal(k){ for(var i=0;i<CANAIS.length;i++) if(CANAIS[i].k===k) return CANAIS[i]; return CANAIS[0]; }
+
+var PRESETS = [
+  {n:'PS5 Slim', v:3600}, {n:'PS5', v:3400}, {n:'PS4 Pro', v:1700}, {n:'PS4 Slim', v:1350},
+  {n:'Xbox Series S', v:1600}, {n:'Xbox One', v:900},
+  {n:'Switch OLED', v:2100}, {n:'Switch V2', v:1550},
+  {n:'Controle', v:220}, {n:'Jogo', v:120}
+];
+var CATS = ['Console','Controle','Jogo','Acessório','Lote'];
+var INSUMOS = [0,12,15,30,50,80];
+
+var VISTORIA = ['Liga e chega ao menu sem reiniciar',
+  'Roda jogo pesado 15 min com a mão na saída de ar',
+  'Insere e ejeta disco duas vezes, escutando o motor',
+  'Cada controle: analógicos em 360°, gatilhos e D-pad',
+  'Cada controle carrega de verdade pelo cabo',
+  'Troca o HDMI de porta na TV e confirma imagem',
+  'Entra no Wi-Fi e abre a loja (não está banido)',
+  'Vendedor desativa a conta dele na sua frente',
+  'Confere lacre e marcas de abertura',
+  'Cheiro: sem cigarro, sem mofo, sem queimado',
+  'Confere todos os acessórios prometidos'];
+
+var LARGADA = [
+  {t:'Semana 1 — Calibrar', s:'zero compras · R$ 60', i:[
+    'Levantar o preço REAL de 10 anúncios com contador de vendidos',
+    'Salvar alertas no OLX: Campo Grande, Sidrolândia, Ribas do Rio Pardo',
+    'Montar o fundo de cartolina em L perto da janela',
+    'Travar modo Pro, balanço de branco e ISO; tirar 20 fotos de teste',
+    'Imprimir o checklist de vistoria e deixar no carro']},
+  {t:'Semana 2 — Garimpar sem comprar', s:'20 min por dia, no plantão', i:[
+    'Varrer com os filtros: não liga, com defeito, não testei, para peças, urgente',
+    'Listar 10 candidatos: poucas fotos, sem descrição, 14+ dias no ar',
+    'Calcular o teto de cada um na Régua',
+    'Descartar os que não cabem e reparar em quantos são',
+    'Abrir conversa com 5 vendedores, sem oferta ainda']},
+  {t:'Semana 3 — A primeira compra', s:'uma unidade só', i:[
+    'Fazer a oferta abaixo do teto nos 3 mais promissores',
+    'Sustentar o número uma vez. Ir embora de dois deles',
+    'Vistoria completa, de dia, com o checklist na mão',
+    'Recibo assinado, documento fotografado, PIX com nome conferido',
+    'Registrar a compra no app no mesmo dia']},
+  {t:'Semana 4 — Recondicionar e vender', s:'onde o lucro é criado', i:[
+    'Limpeza, pasta térmica, revitalizador base água',
+    'As 7 fotos no fundo branco e o vídeo de 40 segundos',
+    'Descrição itemizada: o que testei, o que vai junto, cada defeito com foto',
+    'Anunciar no OLX e no Marketplace com o preço PIX na capa',
+    'Vender, entregar de dia, registrar a venda no app',
+    'Fechar o ciclo: R$/hora, dias em estoque, markup']}
+];
+
+/* ===================== store ===================== */
+var KEY='meubrick-v1';
+var KEY_ANTIGA='bancada-v2';
+var S = { deals:[], tarefas:{}, regua:{}, giro:{}, tema:null, chartMode:'lucro' };
+var db=null, saveT=null;
+
+function load(){
+  try{
+    var raw=localStorage.getItem(KEY);
+    if(!raw){ var antigo=localStorage.getItem(KEY_ANTIGA);
+      if(antigo){ raw=antigo; localStorage.setItem(KEY, antigo); } }
+    if(raw){ var o=JSON.parse(raw); if(o&&typeof o==='object'){
+    S.deals = Array.isArray(o.deals)?o.deals:[];
+    S.tarefas = o.tarefas||{}; S.regua=o.regua||{}; S.giro=o.giro||{};
+    S.tema=o.tema||null; S.chartMode=o.chartMode||'lucro';
+  } } }catch(e){}
+}
+function save(){
+  try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){
+    toast('Armazenamento cheio — exporte um backup'); }
+  clearTimeout(saveT);
+  saveT=setTimeout(function(){ if(db) db.doc('estado/app').set(S).catch(function(){}); }, 900);
+}
+
+/* ===================== cálculo de um negócio ===================== */
+function calc(d){
+  var c = canal(d.canal||'pix');
+  var venda = +d.venda||0, compra = +d.compra||0, ins = +d.insumos||0, hrs = +d.horas||0;
+  var vendido = !!(d.vendaData && venda>0);
+  var taxa = vendido ? venda*c.p + (venda>0?c.f:0) : 0;
+  var liq  = venda - taxa;
+  var custo= compra + ins;
+  var lucro= vendido ? liq - custo : 0;
+  return {
+    vendido:vendido, taxa:taxa, liquido:liq, custo:custo, lucro:lucro,
+    markup: custo>0 && vendido ? lucro/custo : 0,
+    margem: venda>0 && vendido ? lucro/venda : 0,
+    dias: days(d.compraData, d.vendaData||null),
+    rph: hrs>0 && vendido ? lucro/hrs : 0
+  };
+}
+
+/* ===================== PAINEL ===================== */
+function renderPainel(){
+  var ds=S.deals, vend=[], est=[];
+  ds.forEach(function(d){ (calc(d).vendido?vend:est).push(d); });
+
+  var lucro=0, fat=0, custoV=0, dias=0, horas=0, retornos=0;
+  vend.forEach(function(d){ var k=calc(d);
+    lucro+=k.lucro; fat+=(+d.venda||0); custoV+=k.custo; dias+=k.dias; horas+=(+d.horas||0);
+    if(d.status==='devolvido') retornos++;
+  });
+  var parado=0; est.forEach(function(d){ parado+=calc(d).custo; });
+  var markup = custoV>0 ? lucro/custoV : 0;
+  var rph = horas>0 ? lucro/horas : 0;
+  var diasMed = vend.length ? dias/vend.length : 0;
+
+  /* mês corrente */
+  var mAtual = today().slice(0,7), lucroMes=0, fatMes=0;
+  vend.forEach(function(d){ if((d.vendaData||'').slice(0,7)===mAtual){ lucroMes+=calc(d).lucro; fatMes+=(+d.venda||0);} });
+
+  $('k-top').innerHTML =
+    cell(money(lucro),'Lucro acumulado','go','feat') +
+    cell(money(parado),'Capital parado', parado>lucro*2?'stop':'') +
+    cell(pc(markup),'Markup médio','');
+
+  var encalhados = est.filter(function(d){ return days(d.compraData,null) > 30; }).length;
+  $('k-saude').innerHTML =
+    cell(vend.length + ' / ' + est.length,'Vendidos / em estoque','') +
+    cell(diasMed?Math.round(diasMed)+' d':'—','Dias médios até vender', diasMed>30?'warn':'') +
+    cell(rph?money(rph):'—','Por hora de trabalho','') +
+    cell(money(lucroMes),'Lucro deste mês','') +
+    cell(money(fat),'Faturamento acumulado','') +
+    cell(encalhados?encalhados:'0','Encalhados há 30+ dias', encalhados?'stop':'');
+
+  /* categorias */
+  var tb=$('t-cat').querySelector('tbody'); tb.innerHTML='';
+  var byCat={};
+  vend.forEach(function(d){ var c=d.cat||'Outro'; byCat[c]=byCat[c]||{n:0,l:0,c:0};
+    var k=calc(d); byCat[c].n++; byCat[c].l+=k.lucro; byCat[c].c+=k.custo; });
+  var keys=Object.keys(byCat).sort(function(a,b){ return byCat[b].l-byCat[a].l; });
+  if(!keys.length){
+    tb.innerHTML='<tr><td style="color:var(--muted);font-size:13.5px">Sem vendas registradas ainda.</td></tr>';
+  } else {
+    keys.forEach(function(c){ var o=byCat[c];
+      var tr=document.createElement('tr');
+      tr.innerHTML='<td><strong>'+esc(c)+'</strong><br><span style="font-size:11.5px;color:var(--muted)">'+o.n+' negócio'+(o.n>1?'s':'')+'</span></td>'+
+        '<td class="n"><strong>'+money(o.l)+'</strong><br><span style="font-size:11.5px;color:var(--muted)">markup '+pc(o.c>0?o.l/o.c:0)+'</span></td>';
+      tb.appendChild(tr);
+    });
+  }
+  renderChart(vend);
+}
+function cell(v,k,cls,extra){
+  return '<div class="'+(extra||'')+'"><span class="v '+(cls||'')+'">'+esc(v)+'</span><span class="k">'+esc(k)+'</span></div>';
+}
+
+/* ===================== gráfico mensal ===================== */
+function renderChart(vend){
+  var host=$('chart'); host.innerHTML='';
+  var mode=S.chartMode;
+  $('cm-lucro').setAttribute('aria-pressed', mode==='lucro');
+  $('cm-fat').setAttribute('aria-pressed', mode==='fat');
+  $('chart-title').textContent = mode==='lucro' ? 'Lucro por mês' : 'Faturamento por mês';
+  $('chart-sub').textContent = mode==='lucro'
+    ? 'O que sobrou depois de taxa, peça e custo'
+    : 'Quanto entrou, bruto, no mês da venda';
+
+  if(!vend.length){
+    host.innerHTML='<div class="empty"><svg viewBox="0 0 24 24"><path d="M4 19V10M10 19V5M16 19v-6M22 19H2"/></svg>'+
+      '<p>O gráfico aparece assim que você registrar a primeira venda.</p></div>';
+    return;
+  }
+
+  /* últimos 6 meses, incluindo os vazios */
+  var now=new Date(), meses=[];
+  for(var i=5;i>=0;i--){
+    var d=new Date(now.getFullYear(), now.getMonth()-i, 1);
+    meses.push(d.toISOString().slice(0,7));
+  }
+  var agg={}; meses.forEach(function(m){ agg[m]={lucro:0,fat:0,n:0}; });
+  vend.forEach(function(d){
+    var m=(d.vendaData||'').slice(0,7);
+    if(agg[m]){ var k=calc(d); agg[m].lucro+=k.lucro; agg[m].fat+=(+d.venda||0); agg[m].n++; }
+  });
+
+  var vals = meses.map(function(m){ return mode==='lucro'?agg[m].lucro:agg[m].fat; });
+  var max = Math.max.apply(null, vals.concat([1]));
+  var step = Math.pow(10, Math.floor(Math.log10(max)));
+  var top = Math.ceil(max/step)*step; if(top<=0) top=1;
+
+  var W=320, H=150, padL=6, padB=26, padT=10;
+  var plotH = H-padB-padT;
+  var n=meses.length, gap=6, bw=(W-padL*2-gap*(n-1))/n;
+
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+
+    ($('chart-title').textContent)+' nos últimos seis meses">';
+  /* grade recessiva: só a linha do topo e a base */
+  [0,0.5,1].forEach(function(f){
+    var y=padT+plotH*(1-f);
+    svg+='<line x1="'+padL+'" y1="'+y+'" x2="'+(W-padL)+'" y2="'+y+'" stroke="var(--line-2)" stroke-width="1"/>';
+  });
+  svg+='<text x="'+padL+'" y="'+(padT-2)+'" font-size="8" font-family="ui-monospace,monospace" fill="var(--muted)">'+
+       BRL.format(top).replace(/\s/g,' ')+'</text>';
+
+  meses.forEach(function(m,i){
+    var v = mode==='lucro'?agg[m].lucro:agg[m].fat;
+    var h = top>0 ? Math.max(v>0?3:0, plotH*(v/top)) : 0;
+    var x = padL + i*(bw+gap);
+    var y = padT + plotH - h;
+    var atual = (i===n-1);
+    if(h>0){
+      svg+='<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+h.toFixed(1)+
+           '" rx="4" fill="var(--go)" opacity="'+(atual?1:0.72)+'"/>';
+    }
+    svg+='<rect class="hit" data-i="'+i+'" x="'+x.toFixed(1)+'" y="'+padT+'" width="'+bw.toFixed(1)+
+         '" height="'+plotH+'" fill="transparent" style="cursor:pointer"/>';
+    svg+='<text x="'+(x+bw/2).toFixed(1)+'" y="'+(H-10)+'" font-size="9" text-anchor="middle" '+
+         'font-family="ui-monospace,monospace" fill="var(--muted)">'+mesLabel(m+'-01')+'</text>';
+  });
+  svg+='</svg>';
+  host.innerHTML=svg;
+
+  /* tooltip por barra */
+  var wrap=host.parentNode, tip=null;
+  host.querySelectorAll('.hit').forEach(function(r){
+    function show(e){
+      var i=+r.getAttribute('data-i'), m=meses[i], a=agg[m];
+      if(!tip){ tip=el('div','tip'); wrap.appendChild(tip); }
+      tip.innerHTML = mesLabel(m+'-01')+'<br>'+
+        'lucro '+money(a.lucro)+'<br>'+
+        'bruto '+money(a.fat)+'<br>'+
+        a.n+' negócio'+(a.n===1?'':'s');
+      var br=wrap.getBoundingClientRect(), rr=r.getBoundingClientRect();
+      var left = rr.left-br.left+rr.width/2;
+      tip.style.left = Math.max(4, Math.min(br.width-tip.offsetWidth-4, left-tip.offsetWidth/2))+'px';
+      tip.style.top = '2px';
+      if(e) e.preventDefault();
+    }
+    r.addEventListener('pointerenter', show);
+    r.addEventListener('pointerdown', show);
+    r.addEventListener('pointerleave', function(){ if(tip){ tip.remove(); tip=null; } });
+  });
+  wrap.addEventListener('pointerleave', function(){ if(tip){ tip.remove(); tip=null; } });
+}
+
+/* ===================== NEGÓCIOS ===================== */
+var filtro='todos';
+function renderDeals(){
+  var host=$('deals'); host.innerHTML='';
+  var list = S.deals.slice().sort(function(a,b){
+    var A=a.vendaData||a.compraData||'', B=b.vendaData||b.compraData||'';
+    return B.localeCompare(A);
+  });
+  list = list.filter(function(d){
+    var k=calc(d);
+    if(filtro==='estoque')  return !k.vendido;
+    if(filtro==='vendido')  return k.vendido;
+    if(filtro==='atrasado') return !k.vendido && days(d.compraData,null)>30;
+    return true;
+  });
+
+  if(!list.length){
+    host.innerHTML='<div class="empty"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/>'+
+      '<path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>'+
+      '<p>'+(S.deals.length? 'Nenhum negócio neste filtro.' :
+        'Nenhum negócio registrado. Toque no + para lançar a primeira compra — ou use a Régua e registre direto de lá.')+'</p></div>';
+    return;
+  }
+
+  list.forEach(function(d){
+    var k=calc(d);
+    var c=el('div','deal');
+    var tags='';
+    if(k.vendido){
+      tags += '<span class="tag go">markup '+pc(k.markup)+'</span>';
+      tags += '<span class="tag">margem '+pc(k.margem)+'</span>';
+      tags += '<span class="tag'+(k.dias>30?' warn':'')+'">'+k.dias+' dias</span>';
+      if(k.rph>0) tags += '<span class="tag">'+money(k.rph)+'/h</span>';
+      if(k.taxa>0) tags += '<span class="tag">taxa '+BRL2.format(k.taxa)+'</span>';
+    } else {
+      var dd=days(d.compraData,null);
+      tags += '<span class="tag'+(dd>30?' stop':(dd>14?' warn':''))+'">'+dd+' dias em estoque</span>';
+      tags += '<span class="tag">custo '+money(k.custo)+'</span>';
+    }
+    c.innerHTML =
+      '<div class="top"><div><div class="nm">'+esc(d.item||'Sem nome')+'</div>'+
+      '<div class="meta">'+esc(d.cat||'—')+(d.cidade?' · '+esc(d.cidade):'')+
+      ' · '+(d.compraData?d.compraData.slice(8,10)+'/'+d.compraData.slice(5,7):'—')+'</div></div>'+
+      '<div class="amt '+(k.vendido?'':'')+'" style="color:'+(k.vendido?(k.lucro>=0?'var(--go)':'var(--stop)'):'var(--ink)')+'">'+
+      (k.vendido?money(k.lucro):money(k.custo))+
+      '<small>'+(k.vendido?'lucro':'parado')+'</small></div></div>'+
+      '<div class="row">'+tags+'</div>'+
+      '<div class="acts">'+
+        (k.vendido?'<button data-act="edit">Editar</button><button data-act="del">Apagar</button>'
+                  :'<button data-act="sell" class="sell">Vendi</button><button data-act="edit">Editar</button>')+
+      '</div>';
+    c.querySelectorAll('[data-act]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var a=b.getAttribute('data-act');
+        if(a==='edit') openDeal(d.id);
+        else if(a==='sell') openDeal(d.id, true);
+        else if(a==='del'){
+          if(confirm('Apagar "'+(d.item||'este negócio')+'"? Não dá para desfazer.')){
+            S.deals = S.deals.filter(function(x){ return x.id!==d.id; });
+            save(); renderAll(); toast('Negócio apagado');
+          }
+        }
+      });
+    });
+    host.appendChild(c);
+  });
+}
+
+/* ===================== sheet de negócio ===================== */
+function openDeal(id, vender, prefill){
+  var d = id ? S.deals.filter(function(x){return x.id===id;})[0] : null;
+  var novo = !d;
+  d = d || Object.assign({
+    id:'d'+Date.now()+Math.random().toString(36).slice(2,6),
+    item:'', cat:'Console', cidade:'', compraData:today(), compra:0,
+    insumos:0, horas:0, canal:'pix', vendaData:'', venda:0, obs:''
+  }, prefill||{});
+
+  var host=$('sheet-host');
+  var canaisOpt = CANAIS.map(function(c){
+    return '<option value="'+c.k+'"'+(d.canal===c.k?' selected':'')+'>'+esc(c.n)+'</option>'; }).join('');
+  var catsOpt = CATS.map(function(c){
+    return '<option value="'+c+'"'+(d.cat===c?' selected':'')+'>'+c+'</option>'; }).join('');
+
+  host.innerHTML =
+  '<div class="sheet" id="sheet"><div class="scrim" data-close></div><div class="body">'+
+    '<div class="grab"></div>'+
+    '<h3>'+(novo?'Novo negócio':(vender?'Registrar a venda':'Editar negócio'))+'</h3>'+
+    '<p class="lead">'+(vender?'O resto já está preenchido — só o que entrou.':'Deslocamento fica fora: você abate rodando Uber.')+'</p>'+
+
+    '<div class="fld"><label for="f-item">O que é</label>'+
+      '<input id="f-item" type="text" value="'+esc(d.item)+'" placeholder="PS4 Slim 1TB + 2 controles" autocomplete="off"></div>'+
+    '<div class="two">'+
+      '<div class="fld"><label for="f-cat">Categoria</label><select id="f-cat">'+catsOpt+'</select></div>'+
+      '<div class="fld"><label for="f-cidade">Cidade</label>'+
+        '<input id="f-cidade" type="text" value="'+esc(d.cidade)+'" placeholder="Campo Grande" autocomplete="off"></div>'+
+    '</div>'+
+
+    '<div class="sec" style="margin:6px 0 10px">Compra</div>'+
+    '<div class="two">'+
+      '<div class="fld"><label for="f-cdata">Data</label>'+
+        '<input id="f-cdata" type="date" value="'+esc(d.compraData)+'"></div>'+
+      '<div class="fld"><label for="f-compra">Quanto paguei</label>'+
+        '<input id="f-compra" type="number" inputmode="decimal" step="10" value="'+(+d.compra||'')+'" placeholder="0"></div>'+
+    '</div>'+
+    '<div class="two">'+
+      '<div class="fld"><label for="f-insumos">Peças e insumos</label>'+
+        '<input id="f-insumos" type="number" inputmode="decimal" step="5" value="'+(+d.insumos||'')+'" placeholder="0"></div>'+
+      '<div class="fld"><label for="f-horas">Horas gastas</label>'+
+        '<input id="f-horas" type="number" inputmode="decimal" step="0.5" value="'+(+d.horas||'')+'" placeholder="0"></div>'+
+    '</div>'+
+
+    '<div class="sec" style="margin:6px 0 10px">Venda <span style="text-transform:none;letter-spacing:0;font-family:var(--ui)">— deixe vazio se ainda está em estoque</span></div>'+
+    '<div class="two">'+
+      '<div class="fld"><label for="f-vdata">Data da venda</label>'+
+        '<input id="f-vdata" type="date" value="'+esc(vender && !d.vendaData ? today() : d.vendaData)+'"></div>'+
+      '<div class="fld"><label for="f-venda">Quanto vendi</label>'+
+        '<input id="f-venda" type="number" inputmode="decimal" step="10" value="'+(+d.venda||'')+'" placeholder="0"></div>'+
+    '</div>'+
+    '<div class="fld"><label for="f-canal">Como recebi</label><select id="f-canal">'+canaisOpt+'</select></div>'+
+    '<div class="fld"><label for="f-obs">Observações</label>'+
+      '<textarea id="f-obs" placeholder="Anúncio parado 3 semanas. Trocou pasta térmica.">'+esc(d.obs)+'</textarea></div>'+
+
+    '<div class="card flat" id="f-preview" style="padding:13px;margin-bottom:14px"></div>'+
+    '<div class="btnrow">'+
+      '<button class="btn btn-s" data-close>Cancelar</button>'+
+      '<button class="btn btn-p" id="f-save">Salvar</button>'+
+    '</div>'+
+  '</div></div>';
+
+  var sheet=$('sheet');
+  function read(){
+    return {
+      item:$('f-item').value.trim(), cat:$('f-cat').value, cidade:$('f-cidade').value.trim(),
+      compraData:$('f-cdata').value, compra:+$('f-compra').value||0,
+      insumos:+$('f-insumos').value||0, horas:+$('f-horas').value||0,
+      canal:$('f-canal').value, vendaData:$('f-vdata').value, venda:+$('f-venda').value||0,
+      obs:$('f-obs').value.trim()
+    };
+  }
+  function preview(){
+    var k=calc(read()), p=$('f-preview');
+    if(!k.vendido){
+      p.innerHTML='<div style="font-size:13.5px;color:var(--muted)">Em estoque · capital travado <strong style="color:var(--ink)" class="mono">'+money(k.custo)+'</strong>'+
+        (read().compraData? ' · '+days(read().compraData,null)+' dias':'')+'</div>';
+    } else {
+      p.innerHTML='<div class="kpis" style="border:0"><div style="background:var(--card-2)"><span class="v '+(k.lucro>=0?'go':'stop')+'">'+money(k.lucro)+'</span><span class="k">lucro</span></div>'+
+        '<div style="background:var(--card-2)"><span class="v">'+pc(k.markup)+'</span><span class="k">markup</span></div>'+
+        '<div style="background:var(--card-2)"><span class="v">'+k.dias+' d</span><span class="k">em estoque</span></div>'+
+        '<div style="background:var(--card-2)"><span class="v">'+(k.rph?money(k.rph):'—')+'</span><span class="k">por hora</span></div></div>';
+    }
+  }
+  sheet.querySelectorAll('input,select,textarea').forEach(function(i){
+    i.addEventListener('input', preview); i.addEventListener('change', preview);
+  });
+  sheet.querySelectorAll('[data-close]').forEach(function(b){
+    b.addEventListener('click', function(){ host.innerHTML=''; });
+  });
+  $('f-save').addEventListener('click', function(){
+    var o=read();
+    if(!o.item){ toast('Dê um nome ao item'); $('f-item').focus(); return; }
+    if(!o.compraData){ toast('Falta a data da compra'); return; }
+    Object.assign(d, o);
+    if(novo) S.deals.push(d);
+    save(); host.innerHTML=''; renderAll();
+    toast(novo?'Negócio registrado':'Atualizado');
+  });
+  preview();
+  if(vender) setTimeout(function(){ $('f-venda').focus(); }, 260);
+  else if(novo) setTimeout(function(){ $('f-item').focus(); }, 260);
+}
+
+/* ===================== RÉGUA ===================== */
+var R = { venda:1350, margem:0.35, canal:'pix', insumo:30, pedido:950 };
+
+function buildReguaChips(){
+  var p=$('presets'); p.innerHTML='';
+  PRESETS.forEach(function(x){
+    var b=el('button',null,x.n); b.type='button';
+    b.addEventListener('click', function(){
+      R.venda=x.v; $('r-venda').value=x.v; $('r-venda-s').value=Math.min(5000,x.v);
+      if(R.pedido < x.v*0.45 || R.pedido > x.v*1.1){ R.pedido=Math.round(x.v*0.7/10)*10; $('r-pedido').value=R.pedido; }
+      calcRegua(); persistRegua();
+    });
+    p.appendChild(b);
+  });
+  var c=$('canais'); c.innerHTML='';
+  CANAIS.forEach(function(x){
+    var b=el('button',null,x.n); b.type='button';
+    b.setAttribute('aria-pressed', R.canal===x.k);
+    b.addEventListener('click', function(){
+      R.canal=x.k;
+      c.querySelectorAll('button').forEach(function(o){ o.setAttribute('aria-pressed','false'); });
+      b.setAttribute('aria-pressed','true');
+      $('canal-hint').textContent = x.h;
+      calcRegua(); persistRegua();
+    });
+    c.appendChild(b);
+  });
+  var ins=$('insumos'); ins.innerHTML='';
+  INSUMOS.forEach(function(v){
+    var b=el('button',null, v===0?'Nenhum':('R$ '+v)); b.type='button';
+    b.setAttribute('aria-pressed', R.insumo===v);
+    b.addEventListener('click', function(){
+      R.insumo=v;
+      ins.querySelectorAll('button').forEach(function(o){ o.setAttribute('aria-pressed','false'); });
+      b.setAttribute('aria-pressed','true');
+      calcRegua(); persistRegua();
+    });
+    ins.appendChild(b);
+  });
+  $('seg-margem').querySelectorAll('button').forEach(function(b){
+    b.addEventListener('click', function(){
+      R.margem = (+b.getAttribute('data-m'))/100;
+      $('seg-margem').querySelectorAll('button').forEach(function(o){ o.setAttribute('aria-pressed','false'); });
+      b.setAttribute('aria-pressed','true');
+      calcRegua(); persistRegua();
+    });
+  });
+}
+function persistRegua(){ S.regua = Object.assign({}, R); save(); }
+
+function calcRegua(){
+  var c=canal(R.canal);
+  var venda=R.venda, taxa = venda>0 ? venda*c.p + c.f : 0;
+  var liq = venda - taxa;
+  var alvo = venda*R.margem;
+  var teto = Math.max(0, liq - R.insumo - alvo);
+  var lucro = teto>0 ? liq - R.insumo - teto : 0;
+  var custo = teto + R.insumo;
+  var markup = custo>0 ? lucro/custo : 0;
+
+  $('lv-venda').textContent  = money(venda);
+  $('lv-margem').textContent = pc(R.margem);
+  $('lv-insumo').textContent = money(R.insumo);
+  $('lv-pedido').textContent = money(R.pedido);
+
+  var big=$('r-teto');
+  big.textContent = money(teto);
+  big.className = 'big mono' + (teto<=0?' neg':'');
+  $('r-teto-sub').textContent = teto>0
+    ? 'para sobrar ' + money(lucro) + ' com margem de ' + pc(R.margem)
+    : 'com essa margem e esses custos não sobra teto';
+
+  /* régua visual */
+  var max = Math.max(venda, R.pedido, teto, 1)*1.05;
+  var pT = Math.min(100, teto/max*100);
+  var pA = Math.min(100, R.pedido/max*100);
+  var meio = Math.min(100, teto*1.18/max*100);
+  $('z-go').style.width = pT+'%';
+  $('z-warn').style.left = pT+'%'; $('z-warn').style.width = Math.max(0, meio-pT)+'%';
+  $('z-stop').style.left = meio+'%'; $('z-stop').style.width = Math.max(0, 100-meio)+'%';
+  $('pin-teto').style.left = 'calc('+pT+'% - 1.5px)';
+  $('pin-ask').style.left  = 'calc('+pA+'% - 1px)';
+  $('lg-teto').textContent = money(teto);
+  $('lg-ask').textContent  = money(R.pedido);
+
+  var pill=$('r-pill'), note=$('r-note');
+  if(teto<=0){
+    pill.className='pill p-stop'; pill.innerHTML='<span class="dot"></span><span>NÃO HÁ NEGÓCIO</span>';
+    note.textContent='Reveja o preço de venda ou baixe a margem alvo. Do jeito que está, não existe preço de compra que funcione.';
+  } else if(R.pedido<=teto){
+    pill.className='pill p-go'; pill.innerHTML='<span class="dot"></span><span>PODE COMPRAR</span>';
+    note.textContent='Ele já pede abaixo do seu teto. Ofereça '+money(Math.round(R.pedido*0.85/10)*10)+' mesmo assim — a sobra é sua.';
+  } else if(R.pedido<=teto*1.18){
+    pill.className='pill p-warn'; pill.innerHTML='<span class="dot"></span><span>NEGOCIE ATÉ '+money(teto)+'</span>';
+    note.textContent='Está '+money(R.pedido-teto)+' acima. Uma oferta firme resolve. Se ele não chegar nesse número, vá embora.';
+  } else {
+    pill.className='pill p-stop'; pill.innerHTML='<span class="dot"></span><span>VÁ EMBORA</span>';
+    note.textContent=money(R.pedido-teto)+' acima do teto é distância que negociação não cobre. Guarde o contato e volte em três semanas.';
+  }
+
+  $('r-kpis').innerHTML =
+    cell(BRL2.format(taxa),'Taxa do canal','') +
+    cell(money(liq),'Líquido no bolso','') +
+    cell(money(lucro),'Lucro no teto','go') +
+    cell(pc(markup),'Markup no teto','');
+}
+
+/* ===================== GIRO ===================== */
+var G = { capital:1800, ticket:700, lucro:450, ciclo:21, reserva:25 };
+function calcGiro(){
+  $('lv-cap').textContent    = money(G.capital);
+  $('lv-ticket').textContent = money(G.ticket);
+  $('lv-lucro').textContent  = money(G.lucro);
+  $('lv-ciclo').textContent  = G.ciclo + ' d';
+  $('lv-res').textContent    = G.reserva + '%';
+
+  var disp = G.capital*(1-G.reserva/100);
+  var unid = G.ticket>0 ? Math.floor(disp/G.ticket) : 0;
+  var giros = 30/G.ciclo;
+  var mes = unid*giros*G.lucro;
+  var roi = G.capital>0 ? mes/G.capital : 0;
+  var empregado = unid*G.ticket;
+  var ocioso = G.capital>0 ? Math.max(0, disp-empregado)/G.capital : 0;
+
+  $('g-mes').textContent = money(mes);
+  $('g-sub').textContent = unid + (unid===1?' unidade':' unidades') + ' girando ' +
+    giros.toFixed(1).replace('.',',') + '× por mês';
+
+  $('g-kpis').innerHTML =
+    cell(String(unid),'Unidades ao mesmo tempo','') +
+    cell(giros.toFixed(1).replace('.',','),'Giros por mês','') +
+    cell(pc(roi),'Retorno mensal sobre o capital','go') +
+    cell(pc(ocioso),'Capital ocioso', ocioso>0.25?'stop':'');
+
+  var d;
+  if(unid===0) d='Com essa reserva o capital não cobre nem uma unidade desse ticket. Baixe o ticket — controles e jogos giram em 7 a 15 dias e ensinam a mesma coisa por um décimo do risco.';
+  else if(ocioso>0.25) d='Sobram '+money(G.capital*ocioso)+' sem função: nem em item, nem em reserva. Esse dinheiro rende zero. Use num segundo item de ticket menor, com ciclo mais curto que o do console.';
+  else if(G.ciclo>30) d='Ciclo de '+G.ciclo+' dias te dá só '+giros.toFixed(1).replace('.',',')+' giro por mês. Cortar o ciclo pela metade vale mais que dobrar a margem.';
+  else if(unid===1) d='Uma unidade por vez significa que qualquer encalhe para a operação inteira. Reserve capital para um segundo item de ticket baixo.';
+  else d='Configuração saudável: '+unid+' unidades girando '+giros.toFixed(1).replace('.',',')+'× por mês com '+pc(ocioso)+' de capital ocioso. Registre cinco negócios reais e troque essas premissas pelos seus números.';
+  $('g-diag').textContent = d;
+}
+
+/* ===================== checklists ===================== */
+function renderChecks(){
+  var v=$('wk-vistoria');
+  v.innerHTML='<div class="h"><span class="t">Teste, nesta ordem</span><span class="s">8 minutos</span></div><ul>'+
+    VISTORIA.map(function(t,i){
+      var id='vs-'+i;
+      return '<li><label for="'+id+'"><input type="checkbox" id="'+id+'"'+(S.tarefas[id]?' checked':'')+'><span>'+esc(t)+'</span></label></li>';
+    }).join('')+'</ul>'+
+    '<div style="margin-top:10px"><button class="btn btn-s" id="vs-reset" style="min-height:42px;font-size:14px">Limpar para a próxima vistoria</button></div>';
+  $('vs-reset').addEventListener('click', function(){
+    VISTORIA.forEach(function(_,i){ delete S.tarefas['vs-'+i]; });
+    save(); renderChecks(); toast('Vistoria zerada');
+  });
+
+  var l=$('wk-largada');
+  l.innerHTML = LARGADA.map(function(w,wi){
+    return '<div class="wk"><div class="h"><span class="t">'+esc(w.t)+'</span><span class="s">'+esc(w.s)+'</span></div><ul>'+
+      w.i.map(function(t,ii){ var id='tk-'+wi+'-'+ii;
+        return '<li><label for="'+id+'"><input type="checkbox" id="'+id+'"'+(S.tarefas[id]?' checked':'')+'><span>'+esc(t)+'</span></label></li>';
+      }).join('')+'</ul></div>';
+  }).join('');
+  updProg();
+}
+function updProg(){
+  var all=document.querySelectorAll('#wk-largada input[type=checkbox]');
+  var done=0; all.forEach(function(c){ if(c.checked) done++; });
+  var p = all.length ? done/all.length*100 : 0;
+  $('prog-bar').style.width = p.toFixed(1)+'%';
+  $('prog-txt').textContent = done+' de '+all.length+' concluídos';
+}
+
+/* ===================== backup ===================== */
+function openData(){
+  var host=$('sheet-host');
+  var n=S.deals.length;
+  host.innerHTML =
+  '<div class="sheet" id="sheet"><div class="scrim" data-close></div><div class="body">'+
+    '<div class="grab"></div><h3>Dados e backup</h3>'+
+    '<p class="lead">Os '+n+' negócio'+(n===1?'':'s')+' ficam guardados neste aparelho. Exporte de vez em quando — é o seu seguro.</p>'+
+    '<div class="card flat" style="padding:14px;margin-bottom:14px">'+
+      '<div style="display:grid;gap:9px">'+
+        '<button class="btn btn-s" id="ex-json"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg> Baixar backup (.json)</button>'+
+        '<button class="btn btn-s" id="ex-csv"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg> Baixar planilha (.csv)</button>'+
+        '<label class="btn btn-s" for="im-file" style="margin:0"><svg viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5M5 21h14"/></svg> Restaurar backup</label>'+
+        '<input id="im-file" type="file" accept="application/json,.json" hidden>'+
+      '</div>'+
+    '</div>'+
+    '<p style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:16px">'+
+      'No iPhone, o arquivo vai para <strong>Arquivos › Downloads</strong>. Guarde no iCloud ou mande para você mesmo no WhatsApp uma vez por mês.</p>'+
+    '<button class="btn btn-d" id="wipe">Apagar tudo</button>'+
+    '<div style="height:10px"></div>'+
+    '<button class="btn btn-s" data-close>Fechar</button>'+
+  '</div></div>';
+
+  $('sheet').querySelectorAll('[data-close]').forEach(function(b){
+    b.addEventListener('click', function(){ host.innerHTML=''; });
+  });
+  $('ex-json').addEventListener('click', function(){
+    dl('meubrick-backup-'+today()+'.json', JSON.stringify(S,null,2), 'application/json');
+  });
+  $('ex-csv').addEventListener('click', function(){
+    var head=['item','categoria','cidade','data_compra','compra','insumos','horas','canal',
+              'data_venda','venda','taxa','liquido','custo','lucro','markup_pct','margem_pct',
+              'dias_estoque','reais_por_hora','obs'];
+    var rows=[head.join(';')];
+    S.deals.forEach(function(d){ var k=calc(d);
+      rows.push([d.item,d.cat,d.cidade,d.compraData,d.compra,d.insumos,d.horas,canal(d.canal).n,
+        d.vendaData,d.venda,k.taxa.toFixed(2),k.liquido.toFixed(2),k.custo.toFixed(2),
+        k.lucro.toFixed(2),(k.markup*100).toFixed(1),(k.margem*100).toFixed(1),
+        k.dias,k.rph.toFixed(2),(d.obs||'').replace(/[;\n\r]/g,' ')]
+        .map(function(c){ return String(c==null?'':c); }).join(';'));
+    });
+    dl('meubrick-negocios-'+today()+'.csv', '﻿'+rows.join('\n'), 'text/csv');
+  });
+  $('im-file').addEventListener('change', function(e){
+    var f=e.target.files && e.target.files[0]; if(!f) return;
+    var rd=new FileReader();
+    rd.onload=function(){
+      try{
+        var o=JSON.parse(rd.result);
+        if(!o || !Array.isArray(o.deals)) throw 0;
+        if(!confirm('Restaurar '+o.deals.length+' negócios? Isso substitui o que está aqui.')) return;
+        S.deals=o.deals; S.tarefas=o.tarefas||{}; S.regua=o.regua||{}; S.giro=o.giro||{};
+        save(); host.innerHTML=''; hydrate(); renderAll(); toast('Backup restaurado');
+      }catch(err){ toast('Arquivo inválido'); }
+    };
+    rd.readAsText(f);
+  });
+  $('wipe').addEventListener('click', function(){
+    if(!confirm('Apagar TODOS os negócios e marcações? Não dá para desfazer.')) return;
+    if(!confirm('Tem certeza mesmo? Exporte um backup antes.')) return;
+    S.deals=[]; S.tarefas={}; save(); host.innerHTML=''; renderAll(); toast('Tudo apagado');
+  });
+}
+function dl(name, text, type){
+  try{
+    var b=new Blob([text],{type:type+';charset=utf-8'});
+    var u=URL.createObjectURL(b);
+    var a=document.createElement('a'); a.href=u; a.download=name;
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(u); a.remove(); }, 800);
+    toast('Arquivo gerado');
+  }catch(e){ toast('Não consegui gerar o arquivo'); }
+}
+
+/* ===================== navegação ===================== */
+var VIEWS = {
+  painel:{t:'Painel', s:'o que o dinheiro fez'},
+  negocios:{t:'Negócios', s:'compras, vendas e markup'},
+  regua:{t:'Régua', s:'quanto pagar hoje'},
+  giro:{t:'Giro', s:'quanto ter para girar'},
+  manual:{t:'Manual', s:'método, métricas e foto'}
+};
+function go(v){
+  Object.keys(VIEWS).forEach(function(k){ $('v-'+k).hidden = (k!==v); });
+  document.querySelectorAll('.tabs button').forEach(function(b){
+    b.setAttribute('aria-selected', b.getAttribute('data-v')===v);
+  });
+  $('bar-title').textContent = VIEWS[v].t;
+  $('bar-sub').textContent = VIEWS[v].s;
+  $('fab').hidden = (v!=='negocios');
+  window.scrollTo(0,0);
+  try{ history.replaceState(null,'','#'+v); }catch(e){}
+}
+
+/* ===================== tema ===================== */
+function applyTheme(){
+  if(S.tema) document.documentElement.setAttribute('data-theme', S.tema);
+  else document.documentElement.removeAttribute('data-theme');
+}
+
+/* ===================== boot ===================== */
+function hydrate(){
+  R = Object.assign(R, S.regua||{});
+  G = Object.assign(G, S.giro||{});
+  $('r-venda').value = R.venda; $('r-venda-s').value = Math.min(5000, R.venda);
+  $('r-pedido').value = R.pedido;
+  $('seg-margem').querySelectorAll('button').forEach(function(b){
+    b.setAttribute('aria-pressed', (+b.getAttribute('data-m'))/100 === R.margem);
+  });
+  ['capital','ticket','lucro','ciclo','reserva'].forEach(function(k){ $('g-'+k).value = G[k]; });
+  $('canal-hint').textContent = canal(R.canal).h;
+}
+function renderAll(){ renderPainel(); renderDeals(); calcRegua(); calcGiro(); }
+
+load();
+applyTheme();
+hydrate();
+buildReguaChips();
+renderChecks();
+renderAll();
+
+/* tabs */
+document.querySelectorAll('.tabs button').forEach(function(b){
+  b.addEventListener('click', function(){ go(b.getAttribute('data-v')); });
+});
+var hash=(location.hash||'').replace('#','');
+go(VIEWS[hash]?hash:'painel');
+
+/* régua: steppers + slider */
+document.querySelectorAll('[data-step]').forEach(function(b){
+  b.addEventListener('click', function(){
+    var t=$(b.getAttribute('data-step')), d=+b.getAttribute('data-d');
+    t.value = Math.max(0, (+t.value||0) + d);
+    t.dispatchEvent(new Event('input',{bubbles:true}));
+  });
+});
+$('r-venda').addEventListener('input', function(){
+  R.venda = Math.max(0, +this.value||0);
+  $('r-venda-s').value = Math.min(5000, Math.max(100, R.venda));
+  calcRegua(); persistRegua();
+});
+$('r-venda-s').addEventListener('input', function(){
+  R.venda = +this.value; $('r-venda').value = R.venda; calcRegua(); persistRegua();
+});
+$('r-pedido').addEventListener('input', function(){
+  R.pedido = Math.max(0, +this.value||0); calcRegua(); persistRegua();
+});
+$('r-registrar').addEventListener('click', function(){
+  var c=canal(R.canal);
+  var teto = Math.max(0, R.venda - (R.venda*c.p + c.f) - R.insumo - R.venda*R.margem);
+  openDeal(null, false, {
+    compra: Math.min(R.pedido>0?R.pedido:teto, teto>0?teto:R.pedido),
+    insumos: R.insumo, canal: R.canal, cat:'Console'
+  });
+});
+
+/* giro sliders */
+['capital','ticket','lucro','ciclo','reserva'].forEach(function(k){
+  $('g-'+k).addEventListener('input', function(){
+    G[k] = +this.value; calcGiro(); S.giro=Object.assign({},G); save();
+  });
+});
+
+/* filtros */
+$('filters').querySelectorAll('button').forEach(function(b){
+  b.addEventListener('click', function(){
+    filtro=b.getAttribute('data-f');
+    $('filters').querySelectorAll('button').forEach(function(o){ o.setAttribute('aria-pressed','false'); });
+    b.setAttribute('aria-pressed','true');
+    renderDeals();
+  });
+});
+
+/* gráfico: modo */
+$('cm-lucro').addEventListener('click', function(){ S.chartMode='lucro'; save(); renderPainel(); });
+$('cm-fat').addEventListener('click',   function(){ S.chartMode='fat';   save(); renderPainel(); });
+
+/* checkboxes */
+document.addEventListener('change', function(e){
+  var t=e.target;
+  if(t && t.matches && t.matches('.wk input[type=checkbox]')){
+    S.tarefas[t.id]=t.checked; save(); updProg();
+  }
+});
+
+$('fab').addEventListener('click', function(){ openDeal(null); });
+$('btn-data').addEventListener('click', openData);
+$('btn-theme').addEventListener('click', function(){
+  var cur = document.documentElement.getAttribute('data-theme');
+  var sysDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  S.tema = cur ? (cur==='dark'?'light':null) : (sysDark?'light':'dark');
+  applyTheme(); save();
+});
+
+/* nuvem opcional (quando rodando como Artifact) */
+if(window.claude && typeof window.claude.use==='function'){
+  window.claude.use('db').then(function(d){
+    if(!d) return; db=d;
+    return db.doc('estado/app').get().then(function(s){
+      if(s && s.exists){
+        var o=s.data();
+        if(o && Array.isArray(o.deals) && o.deals.length >= S.deals.length){
+          S.deals=o.deals; S.tarefas=o.tarefas||S.tarefas;
+          S.regua=o.regua||S.regua; S.giro=o.giro||S.giro;
+          try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){}
+          hydrate(); renderAll();
+        }
+      }
+    });
+  }).catch(function(){});
+}
+
+/* service worker */
+if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('./sw.js').catch(function(){});
+  });
+}
+})();
+</script>
+</body>
+</html>
